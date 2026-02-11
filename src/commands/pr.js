@@ -34,7 +34,8 @@ export function prCommand(program) {
               name: 'repo',
               message: 'Enter repository (owner/repo):',
               validate: (input) =>
-                /^[^\/]+\/[^\/]+$/.test(input) || 'Invalid format. Use: owner/repo',
+                /^[^\/]+\/[^\/]+$/.test(input) ||
+                'Invalid format. Use: owner/repo',
             },
           ]);
           repoPath = answers.repo;
@@ -71,7 +72,11 @@ export function prCommand(program) {
         let body = '';
         if (options.issue) {
           const spinner = await startSpinner('Fetching issue details...');
-          const issueDetails = await getIssueDetails(owner, repo, options.issue);
+          const issueDetails = await getIssueDetails(
+            owner,
+            repo,
+            options.issue
+          );
           spinner.succeed();
 
           body = `Fixes #${options.issue}\n\n## Changes\n- Description of changes\n\n## Related Issue\n${issueDetails.title}`;

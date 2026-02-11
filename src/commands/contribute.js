@@ -84,7 +84,9 @@ async function contributeMode(options) {
 async function findDailyIssues(language) {
   printSection('Finding daily challenges...');
 
-  const spinner = ora(chalk.cyan('Searching for beginner-friendly issues...')).start();
+  const spinner = ora(
+    chalk.cyan('Searching for beginner-friendly issues...')
+  ).start();
 
   try {
     const issues = await searchIssues({
@@ -188,9 +190,11 @@ async function showStats() {
 
 async function showHistory() {
   const contributions = await db.getContributions(10);
-  
+
   if (contributions.length === 0) {
-    console.log(chalk.yellow('No contributions yet. Start by finding an issue!'));
+    console.log(
+      chalk.yellow('No contributions yet. Start by finding an issue!')
+    );
     return;
   }
 

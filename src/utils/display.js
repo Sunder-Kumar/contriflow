@@ -76,13 +76,9 @@ export function displayTable(headers, rows) {
   });
 
   console.log(
-    headers
-      .map((h, i) => chalk.bold(h.padEnd(colWidths[i])))
-      .join(' | ')
+    headers.map((h, i) => chalk.bold(h.padEnd(colWidths[i]))).join(' | ')
   );
-  console.log(
-    colWidths.map((w) => '─'.repeat(w)).join('─┼─')
-  );
+  console.log(colWidths.map((w) => '─'.repeat(w)).join('─┼─'));
 
   rows.forEach((row) => {
     console.log(

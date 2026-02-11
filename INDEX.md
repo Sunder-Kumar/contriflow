@@ -35,6 +35,42 @@ Welcome to ContriFlow CLI! This document serves as a navigation guide to all pro
 - Common workflows with code examples
 - Testing examples
 
+## 🎯 Command-Specific Guides
+
+### Login Command
+- **[LOGIN_GUIDE.md](./LOGIN_GUIDE.md)** - User guide with 5+ usage patterns
+- **[LOGIN_IMPLEMENTATION.md](./LOGIN_IMPLEMENTATION.md)** - Technical details
+
+### Search Command
+- **[SEARCH_GUIDE.md](./SEARCH_GUIDE.md)** - User guide with real-world examples
+- **[SEARCH_IMPLEMENTATION.md](./SEARCH_IMPLEMENTATION.md)** - Technical details
+- **[SEARCH_TESTING.md](./SEARCH_TESTING.md)** - Testing guide with 10+ scenarios
+
+### Issues Command
+- **[ISSUES_GUIDE.md](./ISSUES_GUIDE.md)** - Comprehensive user guide with 15+ examples
+- **[ISSUES_IMPLEMENTATION.md](./ISSUES_IMPLEMENTATION.md)** - Technical details
+- **[ISSUES_TESTING.md](./ISSUES_TESTING.md)** - Testing guide with 37 test cases
+
+### Fork Command
+- **[FORK_GUIDE.md](./FORK_GUIDE.md)** - User guide with 30+ usage examples
+- **[FORK_IMPLEMENTATION.md](./FORK_IMPLEMENTATION.md)** - Technical details
+- **[FORK_TESTING.md](./FORK_TESTING.md)** - Testing guide with 32 test cases
+
+### Clone Command
+- **[CLONE_GUIDE.md](./CLONE_GUIDE.md)** - User guide with 40+ usage examples
+- **[CLONE_IMPLEMENTATION.md](./CLONE_IMPLEMENTATION.md)** - Technical details
+- **[CLONE_TESTING.md](./CLONE_TESTING.md)** - Testing guide with 37 test cases
+
+### Guide Command
+- **[GUIDE_GUIDE.md](./GUIDE_GUIDE.md)** - User guide with 20+ usage examples
+- **[GUIDE_IMPLEMENTATION.md](./GUIDE_IMPLEMENTATION.md)** - Technical details
+- **[GUIDE_TESTING.md](./GUIDE_TESTING.md)** - Testing guide with 33 test cases
+
+### Solve Command
+- **[SOLVE_GUIDE.md](./SOLVE_GUIDE.md)** - User guide with 15+ usage examples
+- **[SOLVE_IMPLEMENTATION.md](./SOLVE_IMPLEMENTATION.md)** - Technical details
+- **[SOLVE_TESTING.md](./SOLVE_TESTING.md)** - Testing guide with 40 test cases
+
 ## 👨‍💻 Development & Contributing
 
 ### [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution Guide
@@ -271,7 +307,28 @@ contriflow search --help       # With examples
 | CONTRIBUTING.md | ~6k words | 10+ | Development |
 | QUICKSTART.md | ~4k words | 8+ | Quick ref |
 | PROJECT_SUMMARY.md | ~11k words | 12+ | Overview |
-| **Total** | **~46k words** | **67+** | **Full coverage** |
+| **Command Guides** | | | |
+| LOGIN_GUIDE.md | ~11k words | 10+ | Login usage |
+| LOGIN_IMPLEMENTATION.md | ~9k words | 8+ | Login technical |
+| SEARCH_GUIDE.md | ~14k words | 15+ | Search usage |
+| SEARCH_IMPLEMENTATION.md | ~11k words | 10+ | Search technical |
+| SEARCH_TESTING.md | ~10k words | 10+ | Search testing |
+| ISSUES_GUIDE.md | ~14k words | 15+ | Issues usage |
+| ISSUES_IMPLEMENTATION.md | ~10k words | 10+ | Issues technical |
+| ISSUES_TESTING.md | ~17k words | 10+ | Issues testing |
+| FORK_GUIDE.md | ~13.6k words | 15+ | Fork usage |
+| FORK_IMPLEMENTATION.md | ~11k words | 10+ | Fork technical |
+| FORK_TESTING.md | ~15.9k words | 10+ | Fork testing |
+| CLONE_GUIDE.md | ~18.4k words | 20+ | Clone usage |
+| CLONE_IMPLEMENTATION.md | ~13.7k words | 15+ | Clone technical |
+| CLONE_TESTING.md | ~16.7k words | 10+ | Clone testing |
+| GUIDE_GUIDE.md | ~14.8k words | 15+ | Guide usage |
+| GUIDE_IMPLEMENTATION.md | ~12.2k words | 12+ | Guide technical |
+| GUIDE_TESTING.md | ~14.2k words | 10+ | Guide testing |
+| SOLVE_GUIDE.md | ~13.7k words | 15+ | Solve usage |
+| SOLVE_IMPLEMENTATION.md | ~10.9k words | 12+ | Solve technical |
+| SOLVE_TESTING.md | ~16.3k words | 10+ | Solve testing |
+| **Total** | **~312k words** | **270+** | **Complete coverage** |
 
 ## 🎓 Learning Path
 

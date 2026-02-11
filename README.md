@@ -32,8 +32,15 @@ npm start
 
 ## Quick Start
 
-### 1. Authenticate with GitHub
+### 1. Log in to ContriFlow
 
+```bash
+contriflow login
+```
+
+Interactive login that validates your GitHub token and securely stores your credentials.
+
+Alternative (simpler):
 ```bash
 contriflow auth
 ```
@@ -86,41 +93,299 @@ contriflow pr --repo "owner/repo" --branch "feature/fix-issue-123" --issue 123
 
 ## CLI Commands
 
+### `contriflow login`
+Securely log in with your GitHub account (recommended).
+
+Interactive login that validates your token with GitHub API, displays your profile information, and securely stores credentials.
+
+**Options:**
+- `-t, --token <token>` - Provide token directly (non-interactive, for automation)
+- `--check` - Check if already logged in
+- `--logout` - Log out and remove stored credentials
+
+**Examples:**
+```bash
+# Interactive login (recommended)
+contriflow login
+
+# Non-interactive (for scripts/CI/CD)
+contriflow login --token ghp_xxxxxxxxxxxxxxxxxxxxx
+
+# Check login status
+contriflow login --check
+
+# Log out
+contriflow login --logout
+```
+
+For detailed guide: See [LOGIN_GUIDE.md](./LOGIN_GUIDE.md)
+
 ### `contriflow auth`
-Authenticate with your GitHub account.
+Authenticate with your GitHub account (simpler alternative).
 
 **Options:**
 - `-t, --token <token>` - Provide token directly (optional, will prompt if not provided)
 
 ### `contriflow search`
-Search for open-source repositories.
+Search for open-source repositories on GitHub.
+
+**Arguments:**
+- `[keyword]` - Search term (optional, prompts if not provided)
 
 **Options:**
-- `-k, --keyword <keyword>` - Search keyword (required)
+- `-k, --keyword <keyword>` - Search keyword (alternative to argument)
 - `-l, --language <language>` - Filter by programming language
+- `--stars <number>` - Minimum stars (shorthand for --min-stars)
 - `--min-stars <number>` - Minimum stars (default: 10)
 - `--max-stars <number>` - Maximum stars (default: 50000)
 - `-p, --per-page <number>` - Results per page (default: 10)
+- `-t, --table` - Display in table format (default)
+- `--no-table` - Display in list format
+- `--interactive` - Show interactive selection (default)
+- `--no-interactive` - Skip interactive selection
 
-**Example:**
+**Examples:**
 ```bash
-contriflow search --keyword "vue" --language JavaScript --min-stars 500
+# Search with positional argument
+contriflow search react
+
+# Search with star filter
+contriflow search react --stars 1000
+
+# Search with language filter
+contriflow search "web framework" --language python --stars 500
+
+# Non-interactive table display
+contriflow search typescript --stars 1000 --no-interactive --table
+
+# List format
+contriflow search cli --language go --no-table
 ```
+
+For detailed usage: See [SEARCH_GUIDE.md](./SEARCH_GUIDE.md)
 
 ### `contriflow issues`
-Find beginner-friendly issues to work on.
+Find and list GitHub issues - supports global search and repository-specific queries.
+
+**Arguments:**
+- `[repo]` - Repository in format owner/repo (optional)
 
 **Options:**
-- `-l, --label <label>` - Issue label (default: good-first-issue)
-- `--language <language>` - Filter by repository language
-- `--min-stars <number>` - Minimum repository stars
-- `--max-stars <number>` - Maximum repository stars
+- `-l, --label <label>` - Issue label to filter by
+- `--language <language>` - Filter by repository language (global search only)
+- `--min-stars <number>` - Minimum repository stars (global search only, default: 10)
+- `--max-stars <number>` - Maximum repository stars (global search only, default: 50000)
 - `-p, --per-page <number>` - Results per page (default: 10)
+- `--state <state>` - Issue state: open, closed, all (default: open)
+- `-t, --table` - Display in table format (default)
+- `--no-table` - Display in detailed list format
+- `--interactive` - Show interactive selection (default)
+- `--no-interactive` - Skip interactive selection (good for scripts/CI-CD)
 
-**Example:**
+**Examples:**
 ```bash
-contriflow issues --label "help-wanted" --language Python
+# Global search - find beginner issues
+contriflow issues
+contriflow issues --label help-wanted --language python
+
+# Repository-specific - list issues in a project
+contriflow issues facebook/react
+contriflow issues nodejs/node --label bug
+
+# List closed issues
+contriflow issues angular/angular --state closed
+
+# Show all issues (open + closed)
+contriflow issues torvalds/linux --state all --per-page 5
+
+# Non-interactive for automation
+contriflow issues facebook/react --no-interactive
+
+# List format for more details
+contriflow issues kubernetes/kubernetes --no-table
 ```
+
+For comprehensive guide: See [ISSUES_GUIDE.md](./ISSUES_GUIDE.md)
+
+For testing and verification: See [ISSUES_TESTING.md](./ISSUES_TESTING.md)
+
+For implementation details: See [ISSUES_IMPLEMENTATION.md](./ISSUES_IMPLEMENTATION.md)
+
+### `contriflow fork`
+Fork a repository to your GitHub account using the GitHub API.
+
+**Arguments:**
+- `[repo]` - Repository in format owner/repo (optional, will prompt if not provided)
+
+**Options:**
+- `-c, --clone` - Automatically clone the forked repository
+- `--no-interactive` - Skip confirmation prompts
+- `-h, --help` - Display help information
+
+**Examples:**
+```bash
+# Interactive fork with confirmation
+contriflow fork facebook/react
+
+# Non-interactive fork
+contriflow fork nodejs/node --no-interactive
+
+# Fork and auto-clone
+contriflow fork angular/angular --clone
+
+# Interactive repo selection
+contriflow fork
+```
+
+**Features:**
+- Shows repository information before forking
+- Confirms fork action (interactive mode)
+- Handles already-forked repositories
+- Suggests next steps (clone, setup, manual git)
+- Integrates with `contriflow setup` for cloning
+
+For comprehensive guide: See [FORK_GUIDE.md](./FORK_GUIDE.md)
+
+For testing and verification: See [FORK_TESTING.md](./FORK_TESTING.md)
+
+For implementation details: See [FORK_IMPLEMENTATION.md](./FORK_IMPLEMENTATION.md)
+
+### `contriflow clone`
+Clone a repository to your workspace directory using git.
+
+**Arguments:**
+- `[repo]` - Repository in format owner/repo (optional, will prompt if not provided)
+
+**Options:**
+- `-a, --add-upstream` - Automatically add upstream remote (for forks)
+- `-d, --directory <dir>` - Custom directory for cloning (default: ~/.contriflow/workspace)
+- `--no-interactive` - Skip confirmation prompts
+- `-h, --help` - Display help information
+
+**Examples:**
+```bash
+# Simple clone to default workspace
+contriflow clone facebook/react
+
+# Non-interactive clone
+contriflow clone nodejs/node --no-interactive
+
+# Clone with upstream remote (for forks)
+contriflow clone your-username/react --add-upstream
+
+# Clone to custom directory
+contriflow clone angular/angular --directory ~/projects/angular
+
+# Interactive repo selection
+contriflow clone
+```
+
+**Features:**
+- Shows repository information before cloning
+- Git-based cloning to workspace or custom location
+- Optional upstream remote for forks
+- Automatic directory creation
+- Conflict detection for existing directories
+- Clear next steps for working with cloned code
+
+For comprehensive guide: See [CLONE_GUIDE.md](./CLONE_GUIDE.md)
+
+For testing and verification: See [CLONE_TESTING.md](./CLONE_TESTING.md)
+
+For implementation details: See [CLONE_IMPLEMENTATION.md](./CLONE_IMPLEMENTATION.md)
+
+### `contriflow guide <owner>/<repo>`
+Fetch and display contribution guidelines from a repository.
+
+**Syntax:**
+```bash
+contriflow guide facebook/react
+```
+
+**Features:**
+- Fetches CONTRIBUTING.md and CODE_OF_CONDUCT.md
+- Shows repository information and contribution guidelines
+- Supports filtering to specific files
+- Brief mode for quick preview
+- Interactive and non-interactive modes
+- Clear next steps for contributing
+
+**Options:**
+- `-c, --contributing` - Show only CONTRIBUTING.md
+- `-o, --code-of-conduct` - Show only CODE_OF_CONDUCT.md
+- `-b, --brief` - Show first 500 characters (quick preview)
+- `--no-interactive` - Skip confirmation prompts
+
+**Examples:**
+
+View all guidelines:
+```bash
+contriflow guide facebook/react --no-interactive
+```
+
+View only contributing guidelines:
+```bash
+contriflow guide django/django --contributing
+```
+
+Quick preview with brief mode:
+```bash
+contriflow guide nodejs/node --brief
+```
+
+For comprehensive guide: See [GUIDE_GUIDE.md](./GUIDE_GUIDE.md)
+
+For testing and verification: See [GUIDE_TESTING.md](./GUIDE_TESTING.md)
+
+For implementation details: See [GUIDE_IMPLEMENTATION.md](./GUIDE_IMPLEMENTATION.md)
+
+### `contriflow solve <issue_number> <owner>/<repo>`
+Solve a GitHub issue using AI and generate a patch file.
+
+**Syntax:**
+```bash
+contriflow solve 123 facebook/react
+```
+
+**Features:**
+- Fetches issue content from GitHub
+- Sends issue to AI for analysis
+- Generates code patch and explanation
+- Saves solution as patch file
+- Extracts code blocks automatically
+- Works with or without AI key
+
+**Prerequisites:**
+- GitHub authentication (required)
+- OpenRouter API key (optional, for AI solutions)
+
+**Options:**
+- `--no-ai` - Save issue as template without AI generation
+- `--no-interactive` - Skip confirmation prompts
+
+**Examples:**
+
+Solve issue with AI:
+```bash
+contriflow solve 123 facebook/react
+```
+
+Save as template without AI:
+```bash
+contriflow solve 456 django/django --no-ai
+```
+
+**Setting AI Key:**
+```bash
+contriflow config --set-ai-key sk-or-v1-xxxxxxxxxxxx
+```
+Get a key at: https://openrouter.ai
+
+For comprehensive guide: See [SOLVE_GUIDE.md](./SOLVE_GUIDE.md)
+
+For testing and verification: See [SOLVE_TESTING.md](./SOLVE_TESTING.md)
+
+For implementation details: See [SOLVE_IMPLEMENTATION.md](./SOLVE_IMPLEMENTATION.md)
 
 ### `contriflow setup`
 Fork and clone a repository to start working.

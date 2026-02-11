@@ -51,13 +51,7 @@ export async function pushBranch(cloneDir, branchName, remoteUrl) {
 
 export async function createPullRequest(owner, repo, options = {}) {
   const octokit = await initializeOctokit();
-  const {
-    title,
-    body,
-    head,
-    base = 'main',
-    draft = false,
-  } = options;
+  const { title, body, head, base = 'main', draft = false } = options;
 
   try {
     const { data } = await octokit.pulls.create({

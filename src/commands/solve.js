@@ -1,0 +1,184 @@
+import fs from 'fs-extra';
+import path from 'path';
+import os from 'os';
+import { Octokit } from '@octokit/rest';
+import chalk from 'chalk';
+import { generateIssueSolution, extractCodeBlocks } from '../services/aiService.js';
+import { getRepositoryDetails } from '../services/repositoryService.js';
+import { displayTable, printHeader, printSuccess, printError, printInfo, printSection, startSpinner } from '../utils/display.js';
+import { loadConfig } from '../config/configManager.js';
+
+async function handleSolveCommand(options, issueNumber, repo) {
+  try {
+    if (!repo && !issueNumber) {
+      throw new Error('Usage: contriflow solve <issue_number> <owner/repo>');
+    }
+
+    if (!issueNumber || !repo) {
+      throw new Error('Please provide both issue number and repository (owner/repo)');
+    }
+
+    if (!/^[^\/]+\/[^\/]+$/.test(repo)) {
+      throw new Error(`Invalid repository format. Use: owner/repo (e.g., facebook/react)`);
+    }
+
+    const [owner, repoName] = repo.split('/');
+
+    const cfg = await loadConfig();
+    if (!cfg.githubToken) {
+      throw new Error('Not authenticated. Run: contriflow login');
+    }
+
+    const octokit = new Octokit({ auth: cfg.githubToken });
+
+    printHeader('🤖 Issue Solver');
+
+    const hasAIKey = cfg.openRouterKey ? true : false;
+    if (!hasAIKey && !options.noAi) {
+      printError('OpenRouter API key not configured');
+      printInfo('To enable AI solution generation, set your key:');
+      printInfo('  contriflow config --set-ai-key <your-key>');
+      printInfo('Get a key at: https://openrouter.ai');
+    }
+
+    let spinner = startSpinner('Fetching issue...');
+    let issue;
+    try {
+      const issueResponse = await octokit.issues.get({
+        owner,
+        repo: repoName,
+        issue_number: parseInt(issueNumber)
+      });
+      issue = issueResponse.data;
+      spinner.succeed(`Issue #${issueNumber} loaded`);
+    } catch (err) {
+      spinner.fail('Failed to fetch issue');
+      if (err.status === 404) {
+        throw new Error(`Issue #${issueNumber} not found in ${repo}`);
+      }
+      throw err;
+    }
+
+    printSection('Issue Details');
+    displayTable([{
+      'Title': issue.title,
+      'Number': `#${issue.number}`,
+      'State': issue.state,
+      'Created': new Date(issue.created_at).toLocaleDateString(),
+      'Author': issue.user.login
+    }]);
+
+    if (issue.body) {
+      const preview = issue.body.length > 300 
+        ? issue.body.substring(0, 300) + '...' 
+        : issue.body;
+      printInfo(`\n${preview}\n`);
+    }
+
+    let repoDetails;
+    try {
+      const spinner2 = startSpinner('Fetching repository details...');
+      repoDetails = await getRepositoryDetails(owner, repoName);
+      spinner2.succeed('Repository details loaded');
+    } catch (err) {
+      repoDetails = { language: 'JavaScript' };
+    }
+
+    const language = repoDetails.language || 'JavaScript';
+
+    if (hasAIKey && !options.noAi) {
+      const spinner3 = startSpinner('Generating AI solution...');
+      try {
+        const solution = await generateIssueSolution(
+          issue.title,
+          issue.body || issue.title,
+          repo,
+          language
+        );
+        spinner3.succeed('Solution generated');
+
+        printSection('AI-Generated Solution');
+        console.log(solution);
+
+        const codeBlocks = extractCodeBlocks(solution);
+        
+        const workspaceDir = path.join(os.homedir(), '.contriflow', 'patches');
+        await fs.ensureDir(workspaceDir);
+
+        const patchName = `issue-${issueNumber}-${repoName}-${Date.now()}.patch`;
+        const patchPath = path.join(workspaceDir, patchName);
+
+        const patchContent = `From: ContriFlow AI Solver
+Subject: Solution for ${repo}#${issueNumber}
+Date: ${new Date().toISOString()}
+
+${solution}
+
+---
+Code blocks extracted: ${codeBlocks.length}
+${codeBlocks.map((block, i) => `\n--- Code Block ${i + 1} ---\n${block}`).join('')}
+`;
+
+        await fs.writeFile(patchPath, patchContent, 'utf-8');
+
+        printSection('Patch File Created');
+        printSuccess(`Saved to: ${patchPath}`);
+
+        printSection('Next Steps');
+        console.log(`1. Review the solution above`);
+        console.log(`2. View patch file: ${patchName}`);
+        if (codeBlocks.length > 0) {
+          console.log(`3. Extracted ${codeBlocks.length} code block(s) - review for implementation`);
+        }
+        console.log(`4. Create a branch: git checkout -b fix-issue-${issueNumber}`);
+        console.log(`5. Implement and test the solution`);
+        console.log(`6. Create a pull request: contriflow pr`);
+
+        printSuccess(`\n✨ Solution ready! Patch saved at: ${patchPath}`);
+        
+      } catch (err) {
+        spinner3.fail('Failed to generate solution');
+        throw err;
+      }
+    } else {
+      printSection('Issue Saved as Patch Template');
+      
+      const workspaceDir = path.join(os.homedir(), '.contriflow', 'patches');
+      await fs.ensureDir(workspaceDir);
+
+      const patchName = `issue-${issueNumber}-${repoName}-${Date.now()}.patch`;
+      const patchPath = path.join(workspaceDir, patchName);
+
+      const patchContent = `From: ${issue.user.login}
+Subject: ${issue.title}
+Repository: ${repo}
+Issue: #${issueNumber}
+Date: ${new Date(issue.created_at).toISOString()}
+
+${issue.body || issue.title}
+
+---
+Labels: ${issue.labels.map(l => l.name).join(', ') || 'none'}
+`;
+
+      await fs.writeFile(patchPath, patchContent, 'utf-8');
+
+      printSuccess(`Patch template saved to: ${patchPath}`);
+      printInfo('Enable AI solution generation by setting OpenRouter key:');
+      printInfo('  contriflow config --set-ai-key <your-key>');
+    }
+
+  } catch (err) {
+    printError(`\n✗ Error: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+export function solveCommand(program) {
+  program
+    .command('solve [issue_number] [repo]')
+    .description('Solve a GitHub issue using AI and generate a patch')
+    .option('--no-ai', 'Skip AI solution generation, save issue as template only')
+    .option('--no-interactive', 'Skip confirmation prompts')
+    .action(handleSolveCommand);
+}

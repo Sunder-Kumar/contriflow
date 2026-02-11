@@ -12,7 +12,7 @@ All contributions are welcome!
 
 1. **Fork the repository**
    ```bash
-   git clone https://github.com/yourusername/contriflow-cli.git
+   git clone https://github.com/sunder-kumar/contriflow-cli.git
    cd contriflow-cli
    ```
 
@@ -255,8 +255,8 @@ All PRs require review before merging.
 ## Need Help?
 
 - 📖 Check [ARCHITECTURE.md](./ARCHITECTURE.md)
-- 💬 [Ask in discussions](https://github.com/yourusername/contriflow-cli/discussions)
-- 🐛 [Create an issue](https://github.com/yourusername/contriflow-cli/issues)
+- 💬 [Ask in discussions](https://github.com/sunder-kumar/contriflow-cli/discussions)
+- 🐛 [Create an issue](https://github.com/sunder-kumar/contriflow-cli/issues)
 
 ## Code of Conduct
 

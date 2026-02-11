@@ -39,8 +39,7 @@ export function setupCommand(program) {
             {
               type: 'input',
               name: 'repo',
-              message:
-                'Enter repository (format: owner/repo):',
+              message: 'Enter repository (format: owner/repo):',
               validate: (input) =>
                 /^[^\/]+\/[^\/]+$/.test(input) ||
                 'Invalid format. Use: owner/repo',
@@ -54,13 +53,15 @@ export function setupCommand(program) {
         const spinner = await startSpinner('Fetching repository details...');
 
         const repoDetails = await getRepositoryDetails(owner, repo);
-        spinner.succeed(
-          chalk.green(`✓ Repository: ${repoDetails.fullName}`)
-        );
+        spinner.succeed(chalk.green(`✓ Repository: ${repoDetails.fullName}`));
 
         if (options.issue) {
           const issueSpinner = await startSpinner('Fetching issue details...');
-          const issueDetails = await getIssueDetails(owner, repo, options.issue);
+          const issueDetails = await getIssueDetails(
+            owner,
+            repo,
+            options.issue
+          );
           issueSpinner.succeed();
 
           printSection('Issue Information');
@@ -114,11 +115,19 @@ export function setupCommand(program) {
         console.log(chalk.dim(`\nNavigate to the repository:`));
         console.log(chalk.gray(`  cd ${localPath}`));
         console.log(chalk.dim(`\nCreate a feature branch:`));
-        console.log(chalk.gray(`  git checkout -b feature/fix-issue-${options.issue || '123'}`));
+        console.log(
+          chalk.gray(
+            `  git checkout -b feature/fix-issue-${options.issue || '123'}`
+          )
+        );
         console.log(chalk.dim(`\nMake your changes and commit:`));
         console.log(chalk.gray(`  git commit -m "Fix: your fix message"`));
         console.log(chalk.dim(`\nCreate a Pull Request:`));
-        console.log(chalk.gray(`  contriflow pr --repo ${repoPath} --branch feature/fix-issue-${options.issue || '123'}`));
+        console.log(
+          chalk.gray(
+            `  contriflow pr --repo ${repoPath} --branch feature/fix-issue-${options.issue || '123'}`
+          )
+        );
       } catch (error) {
         printError(`Setup failed: ${error.message}`);
       }

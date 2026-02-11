@@ -93,6 +93,55 @@ export async function getIssueComments(owner, repo, issueNumber) {
   }
 }
 
+export async function listRepositoryIssues(owner, repo, options = {}) {
+  const octokit = await initializeOctokit();
+  const {
+    label = null,
+    state = 'open',
+    sort = 'updated',
+    direction = 'desc',
+    perPage = 10,
+  } = options;
+
+  try {
+    const params = {
+      owner,
+      repo,
+      state,
+      sort,
+      direction,
+      per_page: perPage,
+    };
+
+    // Add label filter if specified
+    if (label) {
+      params.labels = label;
+    }
+
+    const { data } = await octokit.issues.listForRepo(params);
+
+    return data.map((issue) => ({
+      id: issue.id,
+      title: issue.title,
+      number: issue.number,
+      url: issue.html_url,
+      body: issue.body || '',
+      labels: issue.labels.map((l) => l.name),
+      owner,
+      repo,
+      repository: `${owner}/${repo}`,
+      author: issue.user.login,
+      authorUrl: issue.user.html_url,
+      createdAt: issue.created_at,
+      updatedAt: issue.updated_at,
+      comments: issue.comments,
+      state: issue.state,
+    }));
+  } catch (error) {
+    throw new Error(`Failed to fetch repository issues: ${error.message}`);
+  }
+}
+
 export async function filterIssuesByLanguage(issues, language) {
   const octokit = await initializeOctokit();
 

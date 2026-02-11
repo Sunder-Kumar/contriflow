@@ -333,8 +333,8 @@ contriflow setup --repo owner/project
 
 - 📖 **Documentation**: Check [README.md](./README.md)
 - 🏗️ **Architecture**: See [ARCHITECTURE.md](./ARCHITECTURE.md)
-- 🐛 **Report issues**: https://github.com/yourusername/contriflow-cli/issues
-- 💬 **Ask questions**: https://github.com/yourusername/contriflow-cli/discussions
+- 🐛 **Report issues**: https://github.com/sunder-kumar/contriflow-cli/issues
+- 💬 **Ask questions**: https://github.com/sunder-kumar/contriflow-cli/discussions
 - 🤝 **Contribute**: See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## Next Steps

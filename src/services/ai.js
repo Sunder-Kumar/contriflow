@@ -3,7 +3,11 @@ import axios from 'axios';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-export async function suggestFixForIssue(issueBody, issueTitle, language = 'JavaScript') {
+export async function suggestFixForIssue(
+  issueBody,
+  issueTitle,
+  language = 'JavaScript'
+) {
   if (!OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY not set in environment');
   }
