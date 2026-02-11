@@ -1,0 +1,126 @@
+import chalk from 'chalk';
+import path from 'path';
+import os from 'os';
+import fs from 'fs-extra';
+import { simpleGit } from 'simple-git';
+import { initializeOctokit } from '../services/github.js';
+import {
+  forkRepository,
+  getRepositoryDetails,
+  getContributingGuidelines,
+} from '../services/repositoryService.js';
+import { getIssueDetails } from '../services/issueService.js';
+import {
+  printHeader,
+  printSuccess,
+  printError,
+  printInfo,
+  printSection,
+  startSpinner,
+  prompt,
+} from '../utils/display.js';
+
+const WORKSPACE_DIR = path.join(os.homedir(), '.contriflow', 'workspace');
+
+export function setupCommand(program) {
+  program
+    .command('setup')
+    .description('Fork and clone a repository to start working')
+    .option('-r, --repo <repo>', 'Repository in format owner/repo')
+    .option('-i, --issue <issue>', 'Issue number (optional)')
+    .action(async (options) => {
+      printHeader('Setup Repository');
+
+      try {
+        let repoPath = options.repo;
+
+        if (!repoPath) {
+          const answers = await prompt([
+            {
+              type: 'input',
+              name: 'repo',
+              message:
+                'Enter repository (format: owner/repo):',
+              validate: (input) =>
+                /^[^\/]+\/[^\/]+$/.test(input) ||
+                'Invalid format. Use: owner/repo',
+            },
+          ]);
+          repoPath = answers.repo;
+        }
+
+        const [owner, repo] = repoPath.split('/');
+
+        const spinner = await startSpinner('Fetching repository details...');
+
+        const repoDetails = await getRepositoryDetails(owner, repo);
+        spinner.succeed(
+          chalk.green(`✓ Repository: ${repoDetails.fullName}`)
+        );
+
+        if (options.issue) {
+          const issueSpinner = await startSpinner('Fetching issue details...');
+          const issueDetails = await getIssueDetails(owner, repo, options.issue);
+          issueSpinner.succeed();
+
+          printSection('Issue Information');
+          console.log(chalk.bold(issueDetails.title));
+          console.log(chalk.dim(issueDetails.body.substring(0, 200) + '...'));
+        }
+
+        const contribSpinner = await startSpinner(
+          'Checking for CONTRIBUTING.md...'
+        );
+        const contrib = await getContributingGuidelines(owner, repo);
+        contribSpinner.succeed();
+
+        if (contrib) {
+          const showContrib = await prompt([
+            {
+              type: 'confirm',
+              name: 'show',
+              message: 'Found CONTRIBUTING.md. View it?',
+            },
+          ]);
+
+          if (showContrib.show) {
+            printSection('CONTRIBUTING.md');
+            console.log(contrib.substring(0, 500) + '...');
+          }
+        } else {
+          printInfo('No CONTRIBUTING.md found in this repository');
+        }
+
+        const forkSpinner = await startSpinner('Forking repository...');
+        const forked = await forkRepository(owner, repo);
+        forkSpinner.succeed(chalk.green(`✓ Forked to ${forked.fullName}`));
+
+        const cloneSpinner = await startSpinner('Cloning repository...');
+        await fs.ensureDir(WORKSPACE_DIR);
+        const localPath = path.join(WORKSPACE_DIR, repo);
+
+        const git = simpleGit();
+        await git.clone(forked.cloneUrl, localPath);
+        cloneSpinner.succeed(chalk.green(`✓ Cloned to ${localPath}`));
+
+        const upstreamSpinner = await startSpinner('Adding upstream remote...');
+        const repoGit = simpleGit(localPath);
+        await repoGit.addRemote('upstream', repoDetails.cloneUrl);
+        upstreamSpinner.succeed();
+
+        printSection('Next Steps');
+        printSuccess('Repository is ready!');
+        console.log(chalk.cyan(`\nLocal path: ${localPath}`));
+        console.log(chalk.dim(`\nNavigate to the repository:`));
+        console.log(chalk.gray(`  cd ${localPath}`));
+        console.log(chalk.dim(`\nCreate a feature branch:`));
+        console.log(chalk.gray(`  git checkout -b feature/fix-issue-${options.issue || '123'}`));
+        console.log(chalk.dim(`\nMake your changes and commit:`));
+        console.log(chalk.gray(`  git commit -m "Fix: your fix message"`));
+        console.log(chalk.dim(`\nCreate a Pull Request:`));
+        console.log(chalk.gray(`  contriflow pr --repo ${repoPath} --branch feature/fix-issue-${options.issue || '123'}`));
+      } catch (error) {
+        printError(`Setup failed: ${error.message}`);
+      }
+    });
+}
