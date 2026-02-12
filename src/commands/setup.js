@@ -70,26 +70,55 @@ export function setupCommand(program) {
         }
 
         const contribSpinner = await startSpinner(
-          'Checking for CONTRIBUTING.md...'
+          'Checking for contribution guidelines...'
         );
-        const contrib = await getContributingGuidelines(owner, repo);
-        contribSpinner.succeed();
+        
+        let contrib;
+        try {
+          contrib = await getContributingGuidelines(owner, repo);
+        } catch (error) {
+          contribSpinner.warn();
+        }
 
         if (contrib) {
+          contribSpinner.succeed(chalk.green('✓ Found contribution guidelines'));
           const showContrib = await prompt([
             {
               type: 'confirm',
               name: 'show',
-              message: 'Found CONTRIBUTING.md. View it?',
+              message: 'View the guidelines?',
+              default: true,
             },
           ]);
 
           if (showContrib.show) {
-            printSection('CONTRIBUTING.md');
-            console.log(contrib.substring(0, 500) + '...');
+            printSection('Contribution Guidelines');
+            console.log(contrib.substring(0, 500) + '...\n');
           }
         } else {
-          printInfo('No CONTRIBUTING.md found in this repository');
+          contribSpinner.warn(chalk.yellow('⚠ No CONTRIBUTING.md found'));
+          console.log(
+            chalk.yellow('\n⚠️  This repository does not have contribution guidelines.')
+          );
+          console.log(chalk.dim('   You should review the README or community standards.'));
+          
+          const continueSetup = await prompt([
+            {
+              type: 'confirm',
+              name: 'proceed',
+              message: 'Continue with setup anyway?',
+              default: false,
+            },
+          ]);
+
+          if (!continueSetup.proceed) {
+            printInfo('Setup cancelled. Please select another repository.');
+            console.log(chalk.cyan('\nTo search for repositories:'));
+            console.log(chalk.gray('  contriflow search --keyword <your-keyword>'));
+            return;
+          }
+          
+          console.log('');
         }
 
         const forkSpinner = await startSpinner('Forking repository...');

@@ -77,27 +77,76 @@ export async function getRepositoryDetails(owner, repo) {
 
 export async function getContributingGuidelines(owner, repo) {
   const octokit = await initializeOctokit();
+
+  // Layer 2: GitHub Community Profile API (BEST METHOD)
   try {
     const { data } = await octokit.repos.getCommunityProfileMetrics({
       owner,
       repo,
     });
 
-    if (data.files?.contributing) {
+    if (data.files?.contributing && data.files.contributing.path) {
+      try {
+        const { data: fileData } = await octokit.repos.getContent({
+          owner,
+          repo,
+          path: data.files.contributing.path,
+        });
+
+        if (fileData.content) {
+          return Buffer.from(fileData.content, 'base64').toString('utf-8');
+        }
+      } catch (fileError) {
+        // File exists but couldn't be retrieved
+      }
+    }
+  } catch (error) {
+    // Continue to Layer 1 if API fails
+  }
+
+  // Layer 1: Common paths in repository
+  const commonPaths = [
+    'CONTRIBUTING.md',
+    'CONTRIBUTE.md',
+    '.github/CONTRIBUTING.md',
+    '.github/CONTRIBUTE.md',
+    'docs/CONTRIBUTING.md',
+    'docs/CONTRIBUTE.md',
+  ];
+
+  for (const path of commonPaths) {
+    try {
       const { data: fileData } = await octokit.repos.getContent({
         owner,
         repo,
-        path: data.files.contributing.path,
+        path,
       });
 
+      if (fileData.content) {
+        return Buffer.from(fileData.content, 'base64').toString('utf-8');
+      }
+    } catch (error) {
+      // Continue to next path
+      continue;
+    }
+  }
+
+  // Layer 3: Organization default .github repository
+  try {
+    const { data: fileData } = await octokit.repos.getContent({
+      owner,
+      repo: '.github',
+      path: 'CONTRIBUTING.md',
+    });
+
+    if (fileData.content) {
       return Buffer.from(fileData.content, 'base64').toString('utf-8');
     }
-
-    return null;
   } catch (error) {
-    console.warn(`Could not fetch CONTRIBUTING.md: ${error.message}`);
-    return null;
+    // Organization .github repo doesn't have CONTRIBUTING.md or doesn't exist
   }
+
+  return null;
 }
 
 export async function checkIfForked(owner, repo) {
@@ -128,6 +177,21 @@ export async function forkRepository(owner, repo) {
       owner: data.owner.login,
     };
   } catch (error) {
-    throw new Error(`Fork failed: ${error.message}`);
+    // Provide helpful error messages
+    if (error.status === 403) {
+      throw new Error(
+        `Fork failed: Permission denied. Make sure your GitHub token has 'repo' permission. ` +
+        `You can also check if the repository is already forked in your account.`
+      );
+    } else if (error.status === 404) {
+      throw new Error(
+        `Fork failed: Repository not found (${owner}/${repo}). ` +
+        `Make sure the owner and repository name are correct.`
+      );
+    }
+    throw new Error(
+      `Fork failed: ${error.message}. ` +
+      `Check your internet connection and GitHub token permissions.`
+    );
   }
 }

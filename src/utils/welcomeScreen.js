@@ -16,7 +16,7 @@ ${chalk.cyan('   ▔▔▔▔')}
   // Welcome Box
   const welcomeBox = `
 ${chalk.bold.cyan('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')}
-${chalk.bold.cyan('│')} ${chalk.bold('Welcome to ContriFlow!')} ${' '.repeat(48)}${chalk.bold.cyan('│')}
+${chalk.bold.cyan('│')} ${chalk.bold('Welcome to ContriFlow!')} ${' '.repeat(40)}${chalk.bold.cyan('│')}
 ${chalk.bold.cyan('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')}
 
 ${chalk.white('Start contributing to open-source in 4 simple commands:')}
