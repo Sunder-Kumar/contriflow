@@ -71,6 +71,16 @@ Welcome to ContriFlow CLI! This document serves as a navigation guide to all pro
 - **[SOLVE_IMPLEMENTATION.md](./SOLVE_IMPLEMENTATION.md)** - Technical details
 - **[SOLVE_TESTING.md](./SOLVE_TESTING.md)** - Testing guide with 40 test cases
 
+### Pull Request Command
+- **[PR_GUIDE.md](./PR_GUIDE.md)** - User guide with 15+ usage examples
+- **[PR_IMPLEMENTATION.md](./PR_IMPLEMENTATION.md)** - Technical details
+- **[PR_TESTING.md](./PR_TESTING.md)** - Testing guide with 35 test cases
+
+### Contribute Command
+- **[CONTRIBUTE_GUIDE.md](./CONTRIBUTE_GUIDE.md)** - User guide with 15+ usage examples, gamification features
+- **[CONTRIBUTE_IMPLEMENTATION.md](./CONTRIBUTE_IMPLEMENTATION.md)** - Technical details, database schema
+- **[CONTRIBUTE_TESTING.md](./CONTRIBUTE_TESTING.md)** - Testing guide with 47 test cases
+
 ## 👨‍💻 Development & Contributing
 
 ### [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution Guide
@@ -328,7 +338,13 @@ contriflow search --help       # With examples
 | SOLVE_GUIDE.md | ~13.7k words | 15+ | Solve usage |
 | SOLVE_IMPLEMENTATION.md | ~10.9k words | 12+ | Solve technical |
 | SOLVE_TESTING.md | ~16.3k words | 10+ | Solve testing |
-| **Total** | **~312k words** | **270+** | **Complete coverage** |
+| PR_GUIDE.md | ~12.6k words | 15+ | PR usage |
+| PR_IMPLEMENTATION.md | ~9.6k words | 12+ | PR technical |
+| PR_TESTING.md | ~10.1k words | 10+ | PR testing |
+| CONTRIBUTE_GUIDE.md | ~12k words | 15+ | Contribute usage |
+| CONTRIBUTE_IMPLEMENTATION.md | ~9k words | 12+ | Contribute technical |
+| CONTRIBUTE_TESTING.md | ~11k words | 10+ | Contribute testing |
+| **Total** | **~398k words** | **348+** | **Complete coverage** |
 
 ## 🎓 Learning Path
 

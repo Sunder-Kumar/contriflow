@@ -387,6 +387,53 @@ For testing and verification: See [SOLVE_TESTING.md](./SOLVE_TESTING.md)
 
 For implementation details: See [SOLVE_IMPLEMENTATION.md](./SOLVE_IMPLEMENTATION.md)
 
+### `contriflow pr <issue_number> <owner/repo>`
+Create a pull request on GitHub automatically.
+
+**Syntax:**
+```bash
+contriflow pr 123 facebook/react
+```
+
+**Features:**
+- Automatically creates feature branch
+- Applies AI-generated patch (if available)
+- Creates pull request with pre-filled description
+- Pushes branch to GitHub
+- Shows PR link and next steps
+
+**Prerequisites:**
+- GitHub authentication (required)
+- Repository must be cloned via `contriflow clone`
+- Issue must exist on GitHub
+
+**Options:**
+- `--no-patch` - Skip AI patch application
+- `--no-interactive` - Skip confirmation prompts
+
+**Examples:**
+
+Create PR with AI patch:
+```bash
+contriflow pr 123 facebook/react
+```
+
+Create PR without patch:
+```bash
+contriflow pr 456 django/django --no-patch
+```
+
+Create PR non-interactively (for scripts):
+```bash
+contriflow pr 789 nodejs/node --no-interactive
+```
+
+For comprehensive guide: See [PR_GUIDE.md](./PR_GUIDE.md)
+
+For testing and verification: See [PR_TESTING.md](./PR_TESTING.md)
+
+For implementation details: See [PR_IMPLEMENTATION.md](./PR_IMPLEMENTATION.md)
+
 ### `contriflow setup`
 Fork and clone a repository to start working.
 
@@ -400,20 +447,82 @@ contriflow setup --repo "torvalds/linux" --issue 999
 ```
 
 ### `contriflow contribute`
-Enter gamified Contribute Mode for tracking and streaks.
+Enter gamified Contribute Mode for tracking daily contributions, maintaining streaks, earning badges, and climbing levels.
 
-**Options:**
-- `-l, --language <language>` - Preferred programming language
-- `--daily` - Show only daily challenges
-- `--stats` - Show contribution statistics
+**Gamification Features:**
+- 🔥 **Daily Streaks** - Track consecutive contribution days, earn milestone badges
+- ⭐ **Level & XP System** - Earn XP with each contribution, level up every 10 XP
+- 🏆 **28 Badges** - Earn badges for streaks, contributions, pull requests, and achievements
+- 📊 **Gamified Dashboard** - View progress, level, XP bar, badges, and stats
+- 🎯 **Daily Challenges** - Get 3 beginner-friendly issues to solve each day
 
-**Features in Contribute Mode:**
-- 🔍 Find new issues
-- 📊 View statistics
-- 📝 View contribution history
-- 🏆 Leaderboard (coming soon)
-- 🔥 Streak tracking
-- ⭐ Points and achievements
+**Command Modes:**
+
+Find today's challenges:
+```bash
+contriflow contribute --daily
+# Finds 3 trending repositories with beginner issues
+```
+
+Track a solved issue:
+```bash
+contriflow contribute --track 123 --repo owner/repo
+# Records completion, updates streak and XP
+```
+
+View contribution dashboard:
+```bash
+contriflow contribute --dashboard
+# or just: contriflow contribute
+# Shows level, XP, streak, badges, stats
+```
+
+Show streak information:
+```bash
+contriflow contribute --streak
+# Displays current streak, milestones, and progress
+```
+
+**Features:**
+- Finds trending repositories with good-first-issue labels
+- Suggests 3 beginner-friendly issues daily across JavaScript, Python, TypeScript, Go
+- Automatic streak tracking (consecutive days)
+- XP earned per contribution (1 issue = 1 XP)
+- 28 unique badges organized by category
+- Real-time progress bars and colorized output
+- GitHub profile integration
+- Persistent contribution history
+
+**Badges Include:**
+- 🎯 First Step (1st contribution)
+- 🔥 3-Day Streak, 🌟 7-Day Streak, 👑 30-Day Streak
+- 💪 10 Contributions, 🚀 25 Contributions, ✨ 50 Contributions
+- 🎪 5 Pull Requests
+- 🎯 Daily Goal (daily target reached)
+
+**Example Complete Workflow:**
+```bash
+# 1. Get today's challenges
+contriflow contribute --daily
+
+# 2. View one of the suggested issues and get AI solution
+contriflow solve 123 owner/repo
+
+# 3. Record that you solved it
+contriflow contribute --track 123 --repo owner/repo
+
+# 4. Create and submit the PR
+contriflow pr 123 owner/repo
+
+# 5. Check your updated stats
+contriflow contribute
+```
+
+For comprehensive guide: See [CONTRIBUTE_GUIDE.md](./CONTRIBUTE_GUIDE.md)
+
+For testing and verification: See [CONTRIBUTE_TESTING.md](./CONTRIBUTE_TESTING.md)
+
+For implementation details: See [CONTRIBUTE_IMPLEMENTATION.md](./CONTRIBUTE_IMPLEMENTATION.md)
 
 ### `contriflow pr`
 Create or manage pull requests.

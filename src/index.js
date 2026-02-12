@@ -13,6 +13,7 @@ import { solveCommand } from './commands/solve.js';
 import { setupCommand } from './commands/setup.js';
 import { contributeCommand } from './commands/contribute.js';
 import { prCommand } from './commands/pr.js';
+import { dashboardCommand } from './commands/dashboard.js';
 
 const version = '1.0.0';
 
@@ -76,6 +77,7 @@ solveCommand(program);
 setupCommand(program);
 contributeCommand(program);
 prCommand(program);
+dashboardCommand(program);
 
 // Help command
 program

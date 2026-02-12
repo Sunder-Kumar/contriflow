@@ -10,8 +10,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "lint": "eslint src --fix",
     "format": "prettier --write \"src/**/*.js\"",
     "build": "echo 'No build step required for CLI'",
@@ -44,5 +44,12 @@
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.1.0",
     "jest": "^29.7.0"
+  },
+  "jest": {
+    "transform": {},
+    "testEnvironment": "node",
+    "testMatch": ["**/__tests__/**/*.test.js"],
+    "collectCoverageFrom": ["src/**/*.js"],
+    "coveragePathIgnorePatterns": ["/node_modules/"]
   }
 }
