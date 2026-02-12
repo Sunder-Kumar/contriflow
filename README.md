@@ -52,6 +52,28 @@ You'll need a GitHub Personal Access Token with these scopes:
 
 Create one at: https://github.com/settings/tokens
 
+## 🔐 Repository Permissions
+
+When creating your GitHub Personal Access Token, configure the following **Repository permissions**:
+
+### Set:
+
+- **Contents → Read and Write**
+- **Pull requests → Read and Write**
+- **Issues → Read and Write**
+- **Administration → Read and Write** *(needed for forks)*
+- **Metadata → Read-only** *(default OK)*
+
+---
+
+### ⚠️ Most Important
+
+The following permissions are critical for ContriFlow to work correctly:
+
+- ✅ **Contents: Read & Write**
+- ✅ **Administration: Read & Write**
+
+
 ### 2. Search for Repositories
 
 ```bash
