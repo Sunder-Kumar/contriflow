@@ -78,7 +78,7 @@ async function showDailyChallenge(cfg) {
 
   printHeader('🎯 Daily Contribution Challenge');
 
-  let spinner = startSpinner('Finding trending repositories with beginner issues...');
+  let spinner = await startSpinner('Finding trending repositories with beginner issues...');
 
   try {
     const languages = ['javascript', 'python', 'typescript', 'go'];
@@ -138,7 +138,7 @@ async function trackIssue(options, cfg) {
   const [owner, repoName] = repo.split('/');
   const octokit = new Octokit({ auth: cfg.githubToken });
 
-  let spinner = startSpinner('Fetching issue details...');
+  let spinner = await startSpinner('Fetching issue details...');
 
   try {
     const issue = await octokit.issues.get({
@@ -188,7 +188,7 @@ async function showDashboard(cfg) {
   printHeader('📊 Contribution Dashboard');
 
   // Get user info
-  let spinner = startSpinner('Loading your stats...');
+  let spinner = await startSpinner('Loading your stats...');
 
   try {
     const config = await loadConfig();

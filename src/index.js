@@ -15,6 +15,7 @@ import { setupCommand } from './commands/setup.js';
 import { contributeCommand } from './commands/contribute.js';
 import { prCommand } from './commands/pr.js';
 import { dashboardCommand } from './commands/dashboard.js';
+import { configCommand } from './commands/config.js';
 
 const version = '1.0.0';
 
@@ -80,6 +81,7 @@ setupCommand(program);
 contributeCommand(program);
 prCommand(program);
 dashboardCommand(program);
+configCommand(program);
 
 // Help command
 program

@@ -129,13 +129,60 @@ export function setupCommand(program) {
         await fs.ensureDir(WORKSPACE_DIR);
         const localPath = path.join(WORKSPACE_DIR, repo);
 
-        const git = simpleGit();
-        await git.clone(forked.cloneUrl, localPath);
-        cloneSpinner.succeed(chalk.green(`✓ Cloned to ${localPath}`));
+        // Check if directory already exists
+        const dirExists = await fs.pathExists(localPath);
+        if (dirExists) {
+          cloneSpinner.warn(chalk.yellow(`⚠ Directory already exists at ${localPath}`));
+          
+          const action = await prompt([
+            {
+              type: 'list',
+              name: 'choice',
+              message: 'What would you like to do?',
+              choices: [
+                'Update existing repository (pull latest)',
+                'Use existing repository as-is',
+                'Remove and re-clone',
+              ],
+            },
+          ]);
+
+          if (action.choice === 'Remove and re-clone') {
+            const confirmSpinner = await startSpinner('Removing existing directory...');
+            await fs.remove(localPath);
+            confirmSpinner.succeed();
+            
+            const recloneSpinner = await startSpinner('Cloning repository...');
+            const git = simpleGit();
+            await git.clone(forked.cloneUrl, localPath);
+            recloneSpinner.succeed(chalk.green(`✓ Cloned to ${localPath}`));
+          } else if (action.choice === 'Update existing repository (pull latest)') {
+            const pullSpinner = await startSpinner('Pulling latest changes...');
+            const repoGit = simpleGit(localPath);
+            await repoGit.pull();
+            pullSpinner.succeed(chalk.green(`✓ Updated repository`));
+          } else {
+            cloneSpinner.succeed(chalk.green(`✓ Using existing repository at ${localPath}`));
+          }
+        } else {
+          const git = simpleGit();
+          await git.clone(forked.cloneUrl, localPath);
+          cloneSpinner.succeed(chalk.green(`✓ Cloned to ${localPath}`));
+        }
 
         const upstreamSpinner = await startSpinner('Adding upstream remote...');
         const repoGit = simpleGit(localPath);
-        await repoGit.addRemote('upstream', repoDetails.cloneUrl);
+        try {
+          await repoGit.addRemote('upstream', repoDetails.cloneUrl);
+        } catch (error) {
+          // Remote might already exist, try to update it
+          try {
+            await repoGit.removeRemote('upstream');
+            await repoGit.addRemote('upstream', repoDetails.cloneUrl);
+          } catch (removeError) {
+            // Continue anyway
+          }
+        }
         upstreamSpinner.succeed();
 
         printSection('Next Steps');

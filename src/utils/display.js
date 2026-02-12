@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
+import Table from 'cli-table3';
 
 export function printHeader(title, width = 60) {
   const padding = Math.max(0, (width - title.length) / 2);
@@ -89,4 +90,39 @@ export function displayTable(headers, rows) {
 
 export function clearScreen() {
   console.clear();
+}
+
+export function displayIssuesTable(issues, title = '📋 Issues') {
+  const table = new Table({
+    head: [
+      chalk.cyan.bold('#'),
+      chalk.cyan.bold('Issue ID'),
+      chalk.cyan.bold('Title'),
+      chalk.cyan.bold('Labels'),
+    ],
+    style: {
+      head: [],
+      border: ['cyan'],
+      compact: false,
+    },
+    colWidths: [5, 12, 45, 30],
+    wordWrap: true,
+  });
+
+  issues.forEach((issue, index) => {
+    const labelsText = issue.labels.length > 0
+      ? issue.labels.slice(0, 2).map((l) => chalk.bgBlue.white(` ${l} `)).join(' ')
+      : chalk.dim('none');
+
+    table.push([
+      chalk.cyan(`${index + 1}`),
+      chalk.yellow(`#${issue.number}`),
+      issue.title.substring(0, 42) + (issue.title.length > 42 ? '...' : ''),
+      labelsText,
+    ]);
+  });
+
+  console.log('\n' + chalk.bold(title) + '\n');
+  console.log(table.toString());
+  console.log('');
 }

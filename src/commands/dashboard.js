@@ -180,13 +180,18 @@ async function showDetailedDashboard(stats, progress, db, githubStats) {
     const lastDays = db.dailyHistory.slice(-14); // Last 14 days
     
     for (const day of lastDays) {
-      const bar = generateProgressBar((day.count / progress.dailyGoal) * 100, 15);
+      // Ensure count is a valid positive number
+      const count = Math.max(0, parseInt(day.count) || 0);
+      const percent = progress.dailyGoal > 0 
+        ? Math.min(100, (count / progress.dailyGoal) * 100) 
+        : 0;
+      const bar = generateProgressBar(percent, 15);
       const date = new Date(day.date + 'T00:00:00').toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
         day: 'numeric'
       });
-      printInfo(`${date}: ${bar} ${day.count} issue${day.count !== 1 ? 's' : ''}`);
+      printInfo(`${date}: ${bar} ${count} issue${count !== 1 ? 's' : ''}`);
     }
   } else {
     printInfo('No contribution history yet');
@@ -294,15 +299,17 @@ async function showStatsOnly(stats) {
 // Helper functions for ASCII art and visualization
 
 function generateProgressBar(percent, length = 30) {
-  const filled = Math.round((percent / 100) * length);
-  const empty = length - filled;
+  // Ensure percent is between 0 and 100
+  const validPercent = Math.max(0, Math.min(100, percent));
+  const filled = Math.round((validPercent / 100) * length);
+  const empty = Math.max(0, length - filled);
   const bar = '█'.repeat(filled) + '░'.repeat(empty);
 
   let color = chalk.red;
-  if (percent >= 50) color = chalk.yellow;
-  if (percent >= 80) color = chalk.green;
+  if (validPercent >= 50) color = chalk.yellow;
+  if (validPercent >= 80) color = chalk.green;
 
-  return `${color(bar)} ${percent}%`;
+  return `${color(bar)} ${validPercent}%`;
 }
 
 function generateStreakVisual(days) {
@@ -330,33 +337,52 @@ function displayBadgesCompact(badges) {
   }
 }
 
+function padLine(text, totalWidth = 57) {
+  // Account for ANSI color codes by calculating visible length
+  const visibleLength = text.replace(/\x1b\[[0-9;]*m/g, '').length;
+  const padding = Math.max(0, totalWidth - visibleLength);
+  return text + ' '.repeat(padding);
+}
+
 function generateLevelBox(level) {
+  const line1 = `⭐ LEVEL ${String(level).padStart(2)} ⭐`;
+  const line2 = `📈 XP Progress ${String(level * 10).padStart(3)}/100`;
+  
   return chalk.cyan(`
 ┌─────────────────────────────────────────────────────────┐
-│                    ⭐ LEVEL ${String(level).padStart(2)} ⭐                    │
-│                 📈 XP Progress ${String(level * 10).padStart(3)}/100            │
+│${padLine(line1.padStart(Math.ceil((57 + line1.length) / 2)))}│
+│${padLine(line2.padStart(Math.ceil((57 + line2.length) / 2)))}│
 └─────────────────────────────────────────────────────────┘
   `);
 }
 
 function generateStreakBox(current, longest) {
   const currentVisual = current > 0 ? '🔥'.repeat(Math.min(current, 15)) : '(inactive)';
+  const line1 = `🔥 CURRENT STREAK: ${String(current).padStart(2)} days`;
+  const line2 = `⭐ LONGEST STREAK: ${String(longest).padStart(2)} days`;
+  
   return chalk.yellow(`
 ┌─────────────────────────────────────────────────────────┐
-│ 🔥 CURRENT STREAK: ${String(current).padStart(2)} days                    │
-│ ⭐ LONGEST STREAK: ${String(longest).padStart(2)} days                    │
-│ ${currentVisual}                         │
+│ ${padLine(line1, 55)} │
+│ ${padLine(line2, 55)} │
+│ ${padLine(currentVisual, 55)} │
 └─────────────────────────────────────────────────────────┘
   `);
 }
 
 function generateStatsBox(stats, progress) {
+  const line1 = `✅ CONTRIBUTIONS:  ${String(stats.totalContributions).padStart(3)}`;
+  const line2 = `📝 ISSUES SOLVED:   ${String(stats.totalIssuesTracked || 0).padStart(3)}`;
+  const line3 = `🔀 PRS CREATED:     ${String(stats.totalPRsCreated).padStart(3)}`;
+  const progressBar = generateProgressBar(progress.progressPercent, 15);
+  const line4 = `🎯 TODAY: ${String(progress.solvedToday).padStart(2)}/${String(progress.dailyGoal).padStart(2)} ${progressBar}`;
+  
   return chalk.green(`
 ┌─────────────────────────────────────────────────────────┐
-│ ✅ CONTRIBUTIONS:  ${String(stats.totalContributions).padStart(3)}                    │
-│ 📝 ISSUES SOLVED:   ${String(stats.totalIssuesTracked || 0).padStart(3)}                    │
-│ 🔀 PRS CREATED:     ${String(stats.totalPRsCreated).padStart(3)}                    │
-│ 🎯 TODAY: ${String(progress.solvedToday).padStart(2)}/${String(progress.dailyGoal).padStart(2)} ${generateProgressBar(progress.progressPercent, 15)} │
+│ ${padLine(line1, 55)} │
+│ ${padLine(line2, 55)} │
+│ ${padLine(line3, 55)} │
+│ ${padLine(line4, 55)} │
 └─────────────────────────────────────────────────────────┘
   `);
 }
@@ -375,7 +401,7 @@ function generateBadgesGrid(badges) {
     const badge1 = badgesToShow[i];
     const badge2 = badgesToShow[i + 1];
     const name1 = badge1.name.substring(0, 25).padEnd(25);
-    const name2 = badge2 ? badge2.name.substring(0, 22).padEnd(22) : '';
+    const name2 = badge2 ? badge2.name.substring(0, 22).padEnd(22) : ''.padEnd(22);
     grid += `│ ${name1} ${name2} │\n`;
   }
 

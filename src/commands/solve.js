@@ -8,18 +8,19 @@ import { getRepositoryDetails } from '../services/repositoryService.js';
 import { displayTable, printHeader, printSuccess, printError, printInfo, printSection, startSpinner } from '../utils/display.js';
 import { loadConfig } from '../config/configManager.js';
 
-async function handleSolveCommand(options, issueNumber, repo) {
+async function handleSolveCommand(issueNumber, repo, options) {
   try {
     if (!repo && !issueNumber) {
       throw new Error('Usage: contriflow solve <issue_number> <owner/repo>');
     }
 
     if (!issueNumber || !repo) {
-      throw new Error('Please provide both issue number and repository (owner/repo)');
+      throw new Error(`Please provide both issue number and repository.\nUsage: contriflow solve <issue_number> <owner/repo>\nExample: contriflow solve 123 github/copilot-cli`);
     }
 
+    // Validate repo format
     if (!/^[^\/]+\/[^\/]+$/.test(repo)) {
-      throw new Error(`Invalid repository format. Use: owner/repo (e.g., facebook/react)`);
+      throw new Error(`Invalid repository format. Use: owner/repo (e.g., facebook/react)\nYou provided: "${repo}"`);
     }
 
     const [owner, repoName] = repo.split('/');
@@ -41,7 +42,7 @@ async function handleSolveCommand(options, issueNumber, repo) {
       printInfo('Get a key at: https://openrouter.ai');
     }
 
-    let spinner = startSpinner('Fetching issue...');
+    let spinner = await startSpinner('Fetching issue...');
     let issue;
     try {
       const issueResponse = await octokit.issues.get({
@@ -60,13 +61,16 @@ async function handleSolveCommand(options, issueNumber, repo) {
     }
 
     printSection('Issue Details');
-    displayTable([{
-      'Title': issue.title,
-      'Number': `#${issue.number}`,
-      'State': issue.state,
-      'Created': new Date(issue.created_at).toLocaleDateString(),
-      'Author': issue.user.login
-    }]);
+    displayTable(
+      ['Title', 'Number', 'State', 'Created', 'Author'],
+      [[
+        issue.title,
+        `#${issue.number}`,
+        issue.state,
+        new Date(issue.created_at).toLocaleDateString(),
+        issue.user.login
+      ]]
+    );
 
     if (issue.body) {
       const preview = issue.body.length > 300 
@@ -77,7 +81,7 @@ async function handleSolveCommand(options, issueNumber, repo) {
 
     let repoDetails;
     try {
-      const spinner2 = startSpinner('Fetching repository details...');
+      const spinner2 = await startSpinner('Fetching repository details...');
       repoDetails = await getRepositoryDetails(owner, repoName);
       spinner2.succeed('Repository details loaded');
     } catch (err) {
@@ -87,7 +91,7 @@ async function handleSolveCommand(options, issueNumber, repo) {
     const language = repoDetails.language || 'JavaScript';
 
     if (hasAIKey && !options.noAi) {
-      const spinner3 = startSpinner('Generating AI solution...');
+      const spinner3 = await startSpinner('Generating AI solution...');
       try {
         const solution = await generateIssueSolution(
           issue.title,
@@ -176,7 +180,7 @@ Labels: ${issue.labels.map(l => l.name).join(', ') || 'none'}
 
 export function solveCommand(program) {
   program
-    .command('solve [issue_number] [repo]')
+    .command('solve <issue_number> <repo>')
     .description('Solve a GitHub issue using AI and generate a patch')
     .option('--no-ai', 'Skip AI solution generation, save issue as template only')
     .option('--no-interactive', 'Skip confirmation prompts')

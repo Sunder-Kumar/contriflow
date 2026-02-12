@@ -12,6 +12,7 @@ import {
   startSpinner,
   formatIssueInfo,
   displayTable,
+  displayIssuesTable,
   prompt,
 } from '../utils/display.js';
 
@@ -150,7 +151,8 @@ async function handleRepoSpecificIssues(repo, options) {
     return;
   }
 
-  printHeader(`🐞 Issues - ${chalk.bold(repo)}`);
+  const labelText = options.label ? ` with label: ${options.label}` : '';
+  printHeader(`📋 Issues - ${chalk.bold(repo)}${labelText}`);
 
   try {
     const spinner = await startSpinner(`Fetching issues from ${repo}...`);
@@ -171,7 +173,10 @@ async function handleRepoSpecificIssues(repo, options) {
 
     // Display results
     if (options.table) {
-      displayRepoIssuesTable(issues);
+      const tableTitle = options.label 
+        ? `📋 Issues in ${repo} with label: ${options.label}`
+        : `📋 Issues in ${repo}`;
+      displayIssuesTable(issues, tableTitle);
     } else {
       displayRepoIssuesList(issues);
     }
@@ -240,20 +245,7 @@ async function handleRepoSpecificIssues(repo, options) {
  * Display global search results in table format
  */
 function displayGlobalIssuesTable(issues) {
-  printSection('Search Results (Table View)');
-  console.log('');
-
-  const headers = ['#', 'Number', 'Title', 'Repository', 'Labels'];
-  const rows = issues.map((issue) => [
-    issues.indexOf(issue) + 1,
-    `#${issue.number}`,
-    chalk.bold(issue.title.substring(0, 30) + (issue.title.length > 30 ? '...' : '')),
-    chalk.cyan(issue.repository),
-    issue.labels.slice(0, 2).map((l) => chalk.bgGreen.black(` ${l} `)).join(' '),
-  ]);
-
-  displayTable(headers, rows);
-  console.log('');
+  displayIssuesTable(issues, '📋 Global Issue Search Results');
 }
 
 /**
@@ -273,21 +265,7 @@ function displayGlobalIssuesList(issues) {
  * Display repository issues in table format
  */
 function displayRepoIssuesTable(issues) {
-  printSection('Issues (Table View)');
-  console.log('');
-
-  const headers = ['#', 'Number', 'Title', 'Author', 'Labels', 'State'];
-  const rows = issues.map((issue) => [
-    issues.indexOf(issue) + 1,
-    `#${issue.number}`,
-    chalk.bold(issue.title.substring(0, 25) + (issue.title.length > 25 ? '...' : '')),
-    chalk.cyan(issue.author),
-    issue.labels.slice(0, 2).map((l) => chalk.bgBlue.white(` ${l} `)).join(' '),
-    issue.state === 'open' ? chalk.green('open') : chalk.red('closed'),
-  ]);
-
-  displayTable(headers, rows);
-  console.log('');
+  displayIssuesTable(issues, '📋 Repository Issues');
 }
 
 /**
