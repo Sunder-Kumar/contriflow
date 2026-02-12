@@ -1,3 +1,5 @@
+*This is a submission for the [GitHub Copilot CLI Challenge](https://dev.to/challenges/github-2026-01-21)*
+
 # ContriFlow CLI
 
 🚀 **Automate your open-source contributions with ContriFlow**
