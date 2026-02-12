@@ -32,25 +32,73 @@ npm start
 
 ## Quick Start
 
-### 1. Log in to ContriFlow
+### Interactive REPL Mode (Recommended!)
+
+Start ContriFlow in interactive mode for a seamless experience:
+
+```bash
+contriflow
+```
+
+This launches an interactive prompt where you can run multiple commands without restarting:
+
+```
+═══════════════════════════════════════════════════════════
+🚀  Welcome to ContriFlow Interactive Mode 🚀
+═══════════════════════════════════════════════════════════
+
+📋 Commands: login, search, issues, fork, clone, setup, solve, guide, contribute, pr, dashboard, config
+💡 Type /help for command list or /help <command> for details
+🔀 Type shift+tab to switch modes (normal/plan/solve)
+❌ Type exit or quit to leave
+
+────────────────────────────────────────────────────────
+
+❯ ● issues facebook/react --label good-first-issue
+[displays issues...]
+
+❯ ● shift+tab
+✓ Switched to 📋 Plan Mode
+
+❯ ◆ setup --repo facebook/react --issue 12345
+[sets up repository...]
+
+❯ ◆ dashboard
+[shows your stats...]
+
+❯ ◆ exit
+👋 Thanks for using ContriFlow! Happy contributing!
+```
+
+### REPL Commands
+
+- **Type any command** directly (no `contriflow` prefix needed)
+- **/help** - Show all available commands
+- **/help <command>** - Show help for specific command
+- **shift+tab** - Switch modes (normal → plan → solve)
+- **exit** or **quit** - Exit the REPL
+
+### Classic Command-Line Mode
+
+You can also use traditional CLI mode:
 
 ```bash
 contriflow login
+contriflow search --keyword "react"
+contriflow issues --language Python
 ```
 
-Interactive login that validates your GitHub token and securely stores your credentials.
+### 1. Log in to ContriFlow
 
-Alternative (simpler):
+In REPL mode:
+```
+❯ ● login
+```
+
+Or classic mode:
 ```bash
-contriflow auth
+contriflow login
 ```
-
-You'll need a GitHub Personal Access Token with these scopes:
-- `repo` - Full control of private repositories
-- `public_repo` - Access public repositories
-- `user` - User profile data
-
-Create one at: https://github.com/settings/tokens
 
 ## 🔐 Repository Permissions
 
@@ -74,43 +122,36 @@ The following permissions are critical for ContriFlow to work correctly:
 - ✅ **Administration: Read & Write**
 
 
+You'll need a GitHub Personal Access Token with these scopes:
+- `repo` - Full control of private repositories
+- `public_repo` - Access public repositories
+- `user` - User profile data
+
+Create one at: https://github.com/settings/tokens
+
 ### 2. Search for Repositories
 
+In REPL mode:
+```
+❯ ● search --keyword "react" --language JavaScript --min-stars 100
+```
+
+Or classic mode:
 ```bash
 contriflow search --keyword "react" --language JavaScript --min-stars 100
 ```
 
 ### 3. Find Beginner-Friendly Issues
 
-```bash
-contriflow issues --language Python --label "good-first-issue"
+```
+❯ ● issues --language Python --label "good-first-issue"
 ```
 
 ### 4. Setup Repository & Start Contributing
 
-```bash
-contriflow setup --repo "facebook/react" --issue 123
 ```
-
-This will:
-- Fetch repository details
-- Display CONTRIBUTING.md guidelines
-- Fork the repository to your account
-- Clone it locally to `~/.contriflow/workspace/`
-- Add upstream remote for syncing
-
-### 5. Enter Contribute Mode (Gamified)
-
-```bash
-contriflow contribute --language JavaScript
+❯ ● setup --repo "facebook/react" --issue 123
 ```
-
-Track daily contributions, build streaks, earn points, and compete on leaderboards!
-
-### 6. Create a Pull Request
-
-```bash
-contriflow pr --repo "owner/repo" --branch "feature/fix-issue-123" --issue 123
 ```
 
 ## CLI Commands

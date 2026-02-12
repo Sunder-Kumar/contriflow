@@ -3,6 +3,7 @@
 import { program } from 'commander';
 import chalk from 'chalk';
 import { displayWelcomeScreen } from './utils/welcomeScreen.js';
+import { startREPL } from './repl.js';
 import { authCommand } from './commands/auth.js';
 import { loginCommand } from './commands/login.js';
 import { searchCommand } from './commands/search.js';
@@ -95,10 +96,9 @@ program
     }
   });
 
-// Show welcome screen if no command provided (before parsing)
+// Show REPL mode if no command provided (before parsing)
 if (!process.argv.slice(2).length) {
-  displayWelcomeScreen();
-  process.exit(0);
+  startREPL(program);
+} else {
+  program.parse(process.argv);
 }
-
-program.parse(process.argv);
