@@ -2,6 +2,7 @@
 
 import { program } from 'commander';
 import chalk from 'chalk';
+import { displayWelcomeScreen } from './utils/welcomeScreen.js';
 import { authCommand } from './commands/auth.js';
 import { loginCommand } from './commands/login.js';
 import { searchCommand } from './commands/search.js';
@@ -21,6 +22,7 @@ program
   .name('contriflow')
   .description('🚀 Automate your open-source contributions with ContriFlow')
   .version(version, '-v, --version')
+  .showHelpAfterError(false)
   .on('--help', () => {
     console.log('');
     console.log(chalk.cyan('Examples:'));
@@ -91,8 +93,10 @@ program
     }
   });
 
-program.parse(process.argv);
-
+// Show welcome screen if no command provided (before parsing)
 if (!process.argv.slice(2).length) {
-  program.outputHelp();
+  displayWelcomeScreen();
+  process.exit(0);
 }
+
+program.parse(process.argv);
