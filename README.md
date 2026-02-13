@@ -56,20 +56,7 @@ This launches an interactive prompt where you can run multiple commands without 
 
 ────────────────────────────────────────────────────────
 
-❯ ● issues facebook/react --label good-first-issue
-[displays issues...]
-
-❯ ● shift+tab
-✓ Switched to 📋 Plan Mode
-
-❯ ◆ setup --repo facebook/react --issue 12345
-[sets up repository...]
-
-❯ ◆ dashboard
-[shows your stats...]
-
-❯ ◆ exit
-👋 Thanks for using ContriFlow! Happy contributing!
+❯ ●
 ```
 
 ### REPL Commands
