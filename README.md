@@ -6,7 +6,9 @@
 
 A powerful GitHub automation CLI tool that helps you discover, contribute to, and track your open-source contributions effortlessly.
 
-## Features
+## 🤖 Built with GitHub Copilot CLI
+
+ContriFlow CLI was developed with extensive help from GitHub Copilot CLI has features like:
 
 - ✅ **GitHub Authentication** - Secure token-based authentication
 - 🔍 **Repository Search** - Find projects by keywords and filter by stars/language
@@ -792,4 +794,5 @@ Built with:
 
 ---
 
-**Happy Contributing! 🚀** Build your open-source portfolio with ContriFlow.
+**Happy Contributing! 🚀** Let’s make open source accessible for everyone.
+
