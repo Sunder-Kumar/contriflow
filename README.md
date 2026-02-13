@@ -446,6 +446,9 @@ contriflow config --set-ai-key sk-or-v1-xxxxxxxxxxxx
 ```
 Get a key at: https://openrouter.ai
 
+> **Note:** OpenRouter is optional. ContriFlow works fully without AI features and can be used as a standard GitHub 
+automation CLI.
+
 For comprehensive guide: See [SOLVE_GUIDE.md](./SOLVE_GUIDE.md)
 
 For testing and verification: See [SOLVE_TESTING.md](./SOLVE_TESTING.md)
