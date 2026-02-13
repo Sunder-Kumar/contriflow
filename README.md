@@ -769,13 +769,6 @@ We welcome contributions! Here's how to contribute to ContriFlow CLI:
 
 MIT License - see LICENSE file for details
 
-## Support
-
-- 📖 [Documentation](./docs)
-- 🐛 [Report Issues](https://github.com/yourusername/contriflow-cli/issues)
-- 💬 [Discussions](https://github.com/yourusername/contriflow-cli/discussions)
-- 📧 Email: support@contriflow.dev
-
 ## Roadmap
 
 - [ ] Web dashboard for contribution tracking
