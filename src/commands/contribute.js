@@ -306,15 +306,17 @@ async function showStreakInfo() {
 
 // Helper functions
 function generateProgressBar(percent, length = 30) {
-  const filled = Math.round((percent / 100) * length);
+  // Clamp percent to [0,100] to avoid negative repeats
+  const p = Math.max(0, Math.min(100, Number.isFinite(percent) ? Math.round(percent) : 0));
+  const filled = Math.round((p / 100) * length);
   const empty = length - filled;
   const bar = '█'.repeat(filled) + '░'.repeat(empty);
 
   let color = chalk.red;
-  if (percent >= 50) color = chalk.yellow;
-  if (percent >= 80) color = chalk.green;
+  if (p >= 50) color = chalk.yellow;
+  if (p >= 80) color = chalk.green;
 
-  return `${color(bar)} ${percent}%`;
+  return `${color(bar)} ${p}%`;
 }
 
 function generateStreakVisual(days) {

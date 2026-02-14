@@ -247,12 +247,15 @@ async function getTodayProgress() {
   const today = getTodayDate();
   const todayData = db.dailyHistory.find(d => d.date === today);
 
+  // Ensure dailyGoal is a sensible positive integer for calculations
+  const dailyGoal = Number.isInteger(db.dailyGoal) && db.dailyGoal > 0 ? db.dailyGoal : 1;
+
   return {
     solvedToday: db.issuesSolvedToday.length,
-    dailyGoal: db.dailyGoal,
-    progressPercent: Math.round((db.issuesSolvedToday.length / db.dailyGoal) * 100),
+    dailyGoal: dailyGoal,
+    progressPercent: Math.round((db.issuesSolvedToday.length / dailyGoal) * 100),
     issues: db.issuesSolvedToday,
-    goalMet: db.issuesSolvedToday.length >= db.dailyGoal
+    goalMet: db.issuesSolvedToday.length >= dailyGoal
   };
 }
 
