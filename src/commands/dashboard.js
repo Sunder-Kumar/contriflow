@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import stringWidth from 'string-width';
 import {
   printHeader,
   printInfo,
@@ -33,6 +34,8 @@ export function dashboardCommand(program) {
 
 async function handleDashboardCommand(options) {
   try {
+    // DEBUG: show parsed options to diagnose incorrect behavior in REPL
+    try { console.log(chalk.gray('DEBUG: dashboard options -> ' + JSON.stringify(options))); } catch (e) {}
     const cfg = await loadConfig();
     if (!cfg.githubToken) {
       throw new Error('Not authenticated. Run: contriflow login');
@@ -338,8 +341,8 @@ function displayBadgesCompact(badges) {
 }
 
 function padLine(text, totalWidth = 57) {
-  // Account for ANSI color codes by calculating visible length
-  const visibleLength = text.replace(/\x1b\[[0-9;]*m/g, '').length;
+  // Use string-width to correctly measure visible width including emojis and wide characters
+  const visibleLength = stringWidth(text);
   const padding = Math.max(0, totalWidth - visibleLength);
   return text + ' '.repeat(padding);
 }
