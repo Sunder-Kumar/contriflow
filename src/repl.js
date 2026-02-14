@@ -120,6 +120,25 @@ export async function startREPL(programInstance) {
             if (exitSuppressed) {
               console.log(chalk.yellow('⚠ Command attempted to exit; exit suppressed in REPL.'));
             }
+            // Reset any parsed option values on the program and its commands to avoid option leakage between parses
+            try {
+              if (programInstance && typeof programInstance === 'object') {
+                programInstance._optionValues = programInstance._optionValues || {};
+                for (const key of Object.keys(programInstance._optionValues)) delete programInstance._optionValues[key];
+                if (Array.isArray(programInstance.commands)) {
+                  for (const cmd of programInstance.commands) {
+                    if (cmd && cmd._optionValues && typeof cmd._optionValues === 'object') {
+                      for (const k of Object.keys(cmd._optionValues)) delete cmd._optionValues[k];
+                    }
+                    if (cmd && cmd._storeOptions && typeof cmd._storeOptions === 'function') {
+                      // no-op: keep compatibility if method exists
+                    }
+                  }
+                }
+              }
+            } catch (e) {
+              // ignore any cleanup errors
+            }
           }
         } catch (error) {
           if (error.code === 'commander.exitOverride' || error.code === 'repl.processExitSuppressed') {
