@@ -98,49 +98,93 @@ export function guideCommand(program) {
         let codeOfConductPath = null;
 
         try {
-          // Get community profile metrics to find file paths
-          const { data: metrics } = await octokit.repos.getCommunityProfileMetrics({
-            owner,
-            repo,
-          });
+          // Priority search for CONTRIBUTING and CODE_OF_CONDUCT:
+          // 1) repo root
+          // 2) .github/ directory in the repo
+          // 3) organization-level .github repo (owner/.github)
+          // 4) GitHub community profile metrics as fallback
 
-          // Fetch CONTRIBUTING.md if available and not excluded
-          if (
-            metrics.files?.contributing &&
-            !options.codeOfConduct
-          ) {
+          // Helper to try fetching a file from a repo path
+          async function tryFetchFromRepo(fetchOwner, fetchRepo, path) {
             try {
-              contributingPath = metrics.files.contributing.path;
-              const { data: contribData } = await octokit.repos.getContent({
-                owner,
-                repo,
-                path: contributingPath,
+              const { data } = await octokit.repos.getContent({
+                owner: fetchOwner,
+                repo: fetchRepo,
+                path,
               });
-              contributing = Buffer.from(contribData.content, 'base64').toString(
-                'utf-8'
-              );
-            } catch (error) {
-              // File not found, continue
+              return Buffer.from(data.content, 'base64').toString('utf-8');
+            } catch (err) {
+              return null;
             }
           }
 
-          // Fetch CODE_OF_CONDUCT.md if available and not excluded
-          if (
-            metrics.files?.code_of_conduct &&
-            !options.contributing
-          ) {
+          // CONTRIBUTING.md search (if not excluded)
+          if (!options.codeOfConduct) {
+            // 1) repo root
+            contributing = await tryFetchFromRepo(owner, repo, 'CONTRIBUTING.md');
+            contributingPath = contributing ? 'CONTRIBUTING.md' : null;
+
+            // 2) .github/ in the same repo
+            if (!contributing) {
+              contributing = await tryFetchFromRepo(owner, repo, '.github/CONTRIBUTING.md');
+              contributingPath = contributing ? '.github/CONTRIBUTING.md' : null;
+            }
+
+            // 3) organization-level .github repo (owner/.github)
+            if (!contributing) {
+              contributing = await tryFetchFromRepo(owner, '.github', 'CONTRIBUTING.md');
+              contributingPath = contributing ? `${owner}/.github/CONTRIBUTING.md` : null;
+            }
+          }
+
+          // CODE_OF_CONDUCT.md search (if not excluded)
+          if (!options.contributing) {
+            codeOfConduct = await tryFetchFromRepo(owner, repo, 'CODE_OF_CONDUCT.md');
+            codeOfConductPath = codeOfConduct ? 'CODE_OF_CONDUCT.md' : null;
+
+            if (!codeOfConduct) {
+              codeOfConduct = await tryFetchFromRepo(owner, repo, '.github/CODE_OF_CONDUCT.md');
+              codeOfConductPath = codeOfConduct ? '.github/CODE_OF_CONDUCT.md' : null;
+            }
+
+            if (!codeOfConduct) {
+              codeOfConduct = await tryFetchFromRepo(owner, '.github', 'CODE_OF_CONDUCT.md');
+              codeOfConductPath = codeOfConduct ? `${owner}/.github/CODE_OF_CONDUCT.md` : null;
+            }
+          }
+
+          // 4) Fallback to community profile metrics for any missing files
+          if (!contributing || !codeOfConduct) {
             try {
-              codeOfConductPath = metrics.files.code_of_conduct.path;
-              const { data: cocData } = await octokit.repos.getContent({
-                owner,
-                repo,
-                path: codeOfConductPath,
-              });
-              codeOfConduct = Buffer.from(cocData.content, 'base64').toString(
-                'utf-8'
-              );
-            } catch (error) {
-              // File not found, continue
+              const { data: metrics } = await octokit.repos.getCommunityProfileMetrics({ owner, repo });
+
+              if (!contributing && metrics.files?.contributing) {
+                try {
+                  const path = metrics.files.contributing.path;
+                  const content = await tryFetchFromRepo(owner, repo, path);
+                  if (content) {
+                    contributing = content;
+                    contributingPath = path;
+                  }
+                } catch (err) {
+                  // ignore
+                }
+              }
+
+              if (!codeOfConduct && metrics.files?.code_of_conduct) {
+                try {
+                  const path = metrics.files.code_of_conduct.path;
+                  const content = await tryFetchFromRepo(owner, repo, path);
+                  if (content) {
+                    codeOfConduct = content;
+                    codeOfConductPath = path;
+                  }
+                } catch (err) {
+                  // ignore
+                }
+              }
+            } catch (err) {
+              // Could not retrieve metrics, continue silently
             }
           }
 
