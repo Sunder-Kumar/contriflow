@@ -114,6 +114,7 @@ export async function startREPL(programInstance) {
           };
 
           try {
+            try { console.log(chalk.gray('DEBUG: parse argv -> ' + JSON.stringify(argv))); } catch (e) {}
             await programInstance.parseAsync(argv);
           } finally {
             process.exit = _originalProcessExit;
