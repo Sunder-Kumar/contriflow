@@ -138,14 +138,20 @@ export async function startREPL(programInstance) {
             }
           }
         } catch (error) {
-          if (error.code === 'commander.exitOverride' || error.code === 'repl.processExitSuppressed') {
-            // ignore suppressed exits
+          // Ignore commander-controlled exits and help/version displays
+          if (
+            error.code === 'commander.exitOverride' ||
+            error.code === 'repl.processExitSuppressed' ||
+            error.code === 'commander.helpDisplayed' ||
+            error.code === 'commander.version'
+          ) {
+            // ignore suppressed or informational exits
           } else if (error.code === 'commander.unknownCommand') {
             console.log(chalk.red(`✗ Unknown command: ${command}`));
             console.log(chalk.gray('💡 Type /help to see available commands'));
           } else if (error.code === 'commander.missingArgument') {
             console.log(chalk.red(`✗ Missing argument: ${error.message}`));
-          } else if (error.code !== 'commander.helpDisplayed' && error.message) {
+          } else if (error.message) {
             console.log(chalk.red(`✗ ${error.message}`));
           }
         }
