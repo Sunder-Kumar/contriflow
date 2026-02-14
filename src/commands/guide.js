@@ -62,8 +62,9 @@ export function guideCommand(program) {
 
         // Fetch repository details
         let repoDetails;
+        let detailsSpinner;
         try {
-          const detailsSpinner = await startSpinner(
+          detailsSpinner = await startSpinner(
             `Fetching repository details for ${chalk.cyan(repoPath)}...`
           );
           repoDetails = await getRepositoryDetails(owner, repo);
@@ -71,7 +72,11 @@ export function guideCommand(program) {
             chalk.green(`✓ Found: ${repoDetails.fullName}`)
           );
         } catch (error) {
-          printError(`Repository not found: ${repoPath}`);
+          if (detailsSpinner && typeof detailsSpinner.fail === 'function') {
+            detailsSpinner.fail(chalk.red(`✗ Repository not found: ${repoPath}`));
+          } else {
+            printError(`Repository not found: ${repoPath}`);
+          }
           return;
         }
 
