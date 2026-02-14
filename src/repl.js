@@ -44,6 +44,17 @@ export async function startREPL(programInstance) {
     const modeIndicator = getModeIndicator();
     const prompt = chalk.cyan(`❯ ${modeIndicator} `);
     
+    // Ensure stdin is in normal (cooked) mode and resumed before asking
+    try {
+      if (process.stdin && process.stdin.isTTY && typeof process.stdin.setRawMode === 'function') {
+        process.stdin.setRawMode(false);
+      }
+      if (process.stdin && typeof process.stdin.resume === 'function') {
+        process.stdin.resume();
+      }
+      if (typeof rl.resume === 'function') rl.resume();
+    } catch (e) {}
+
     rl.question(prompt, async (input) => {
       const trimmedInput = input.trim();
 
