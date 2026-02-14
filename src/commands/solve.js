@@ -112,9 +112,29 @@ async function handleSolveCommand(issueNumber, repo, options) {
         const patchName = `issue-${issueNumber}-${repoName}-${Date.now()}.patch`;
         const patchPath = path.join(workspaceDir, patchName);
 
+        // Build a structured summary to include in the patch file
+        const analysisMatch = solution.split(/\n\n/)[0] || solution.substring(0, 300);
+        const complexity = (codeBlocks.length === 0) ? 'Low' : (codeBlocks.length <= 2 ? 'Medium' : 'High');
+
+        // Try to detect affected filenames from solution text and code blocks
+        const filenameRegex = /([\w\.\/\-]+\.(js|ts|jsx|tsx|py|java|go|c|cpp|cs|rb|json|md))/g;
+        const found = new Set();
+        let m;
+        while ((m = filenameRegex.exec(solution)) !== null) found.add(m[1]);
+        for (const block of codeBlocks) {
+          while ((m = filenameRegex.exec(block)) !== null) found.add(m[1]);
+        }
+        const affectedFiles = Array.from(found);
+
+        const summary = `ISSUE ANALYSIS:\n${analysisMatch}\n\nCOMPLEXITY RATING: ${complexity}\n\nAFFECTED FILES: ${affectedFiles.length ? affectedFiles.join(', ') : 'Unknown'}\n\nEXPLANATION:\n${solution.split(/\n\n/).slice(1,3).join('\n\n') || 'See solution below.'}\n\nCOMMENTS:\nReview the suggested changes, run tests locally, and adjust code as necessary.\n`;
+
         const patchContent = `From: ContriFlow AI Solver
 Subject: Solution for ${repo}#${issueNumber}
 Date: ${new Date().toISOString()}
+
+${summary}
+---
+AI-Generated Solution:
 
 ${solution}
 
@@ -129,7 +149,7 @@ ${codeBlocks.map((block, i) => `\n--- Code Block ${i + 1} ---\n${block}`).join('
         printSuccess(`Saved to: ${patchPath}`);
 
         printSection('Next Steps');
-        console.log(`1. Review the solution above`);
+        console.log(`1. Review the structured summary and AI solution above`);
         console.log(`2. View patch file: ${patchName}`);
         if (codeBlocks.length > 0) {
           console.log(`3. Extracted ${codeBlocks.length} code block(s) - review for implementation`);
