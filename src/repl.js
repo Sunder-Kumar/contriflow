@@ -35,6 +35,9 @@ export async function startREPL(programInstance) {
     } catch (e) {}
   });
 
+  // Keep the event loop alive so REPL isn't terminated by libraries closing handles unexpectedly.
+  const _keepAliveHandle = setInterval(() => {}, 24 * 60 * 60 * 1000);
+
   displayREPLWelcome();
 
   const promptUser = () => {
@@ -55,6 +58,8 @@ export async function startREPL(programInstance) {
         rl.close();
         // Restore original process.exit and exit cleanly
         if (typeof _originalProcessExit === 'function') {
+          // restore and clear keep-alive before exiting
+          clearInterval(_keepAliveHandle);
           process.exit = _originalProcessExit;
           _originalProcessExit(0);
         }
