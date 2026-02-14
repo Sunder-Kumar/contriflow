@@ -349,30 +349,61 @@ function padLine(text, totalWidth = 57) {
   return text + ' '.repeat(padding);
 }
 
+const DEFAULT_CONTENT_WIDTH = 55; // previous default
+
+function truncateToWidth(text, width) {
+  const arr = Array.from(String(text));
+  let res = arr.join('');
+  while (arr.length > 0 && stringWidth(res) > width) {
+    arr.pop();
+    res = arr.join('');
+  }
+  return res;
+}
+
+function padToWidth(text, width) {
+  const s = String(text);
+  const truncated = truncateToWidth(s, width);
+  const pad = Math.max(0, width - stringWidth(truncated));
+  return truncated + ' '.repeat(pad);
+}
+
+function centerText(text, width) {
+  const t = String(text);
+  const visible = stringWidth(t);
+  if (visible >= width) return padToWidth(t, width);
+  const totalPad = width - visible;
+  const left = Math.floor(totalPad / 2);
+  const right = totalPad - left;
+  return ' '.repeat(left) + t + ' '.repeat(right);
+}
+
+function renderBox(lines, colorFn = (s) => s) {
+  const asStrings = lines.map(l => String(l));
+  const maxVisible = Math.max(...asStrings.map(l => stringWidth(l)), 0);
+  const contentWidth = Math.max(DEFAULT_CONTENT_WIDTH, maxVisible);
+  const dashCount = contentWidth + 2; // padding inside the top border
+
+  let out = '';
+  out += '┌' + '─'.repeat(dashCount) + '┐\n';
+  for (const line of asStrings) {
+    out += '│ ' + padToWidth(line, contentWidth) + ' │\n';
+  }
+  out += '└' + '─'.repeat(dashCount) + '┘\n';
+  return colorFn(out);
+}
+
 function generateLevelBox(level) {
   const line1 = `⭐ LEVEL ${String(level).padStart(2)} ⭐`;
   const line2 = `📈 XP Progress ${String(level * 10).padStart(3)}/100`;
-  
-  return chalk.cyan(`
-┌─────────────────────────────────────────────────────────┐
-│${padLine(line1.padStart(Math.ceil((57 + line1.length) / 2)))}│
-│${padLine(line2.padStart(Math.ceil((57 + line2.length) / 2)))}│
-└─────────────────────────────────────────────────────────┘
-  `);
+  return renderBox([centerText(line1, DEFAULT_CONTENT_WIDTH), centerText(line2, DEFAULT_CONTENT_WIDTH)], chalk.cyan);
 }
 
 function generateStreakBox(current, longest) {
   const currentVisual = current > 0 ? '🔥'.repeat(Math.min(current, 15)) : '(inactive)';
   const line1 = `🔥 CURRENT STREAK: ${String(current).padStart(2)} days`;
   const line2 = `⭐ LONGEST STREAK: ${String(longest).padStart(2)} days`;
-  
-  return chalk.yellow(`
-┌─────────────────────────────────────────────────────────┐
-│ ${padLine(line1, 55)} │
-│ ${padLine(line2, 55)} │
-│ ${padLine(currentVisual, 55)} │
-└─────────────────────────────────────────────────────────┘
-  `);
+  return renderBox([line1, line2, currentVisual], chalk.yellow);
 }
 
 function generateStatsBox(stats, progress) {
@@ -381,41 +412,16 @@ function generateStatsBox(stats, progress) {
   const line3 = `🔀 PRS CREATED:     ${String(stats.totalPRsCreated).padStart(3)}`;
   const progressBar = generateProgressBar(progress.progressPercent, 15);
   const line4 = `🎯 TODAY: ${String(progress.solvedToday).padStart(2)}/${String(progress.dailyGoal).padStart(2)} ${progressBar}`;
-  
-  return chalk.green(`
-┌─────────────────────────────────────────────────────────┐
-│ ${padLine(line1, 55)} │
-│ ${padLine(line2, 55)} │
-│ ${padLine(line3, 55)} │
-│ ${padLine(line4, 55)} │
-└─────────────────────────────────────────────────────────┘
-  `);
-}
-
-function padToWidth(text, width) {
-  const s = String(text);
-  const truncated = s.length > width ? s.substring(0, width) : s;
-  const pad = Math.max(0, width - stringWidth(truncated));
-  return truncated + ' '.repeat(pad);
+  return renderBox([line1, line2, line3, line4], chalk.green);
 }
 
 function generateBadgesGrid(badges) {
   if (badges.length === 0) return '';
 
-  const badgesToShow = badges.slice(-12); // Last 12 badges
-  let grid = chalk.magenta(`
-┌─────────────────────────────────────────────────────────┐
-│ 🏆 BADGES (${String(badgesToShow.length).padStart(2)})                            │
-├─────────────────────────────────────────────────────────┤
-`);
-
-  for (const badge of badgesToShow) {
-    const name = padToWidth(badge.name || '', 55);
-    grid += `│ ${name} │\n`;
-  }
-
-  grid += `└─────────────────────────────────────────────────────────┘\n`;
-  return grid;
+  const badgesToShow = badges.slice(-12);
+  const header = `🏆 BADGES (${String(badgesToShow.length).padStart(2)})`;
+  const lines = [header, ...badgesToShow.map(b => b.name || '')];
+  return renderBox(lines, chalk.magenta);
 }
 
 export { handleDashboardCommand };

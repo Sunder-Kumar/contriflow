@@ -1,5 +1,6 @@
 import readline from 'readline';
 import chalk from 'chalk';
+import stringWidth from 'string-width';
 import { program } from 'commander';
 
 let currentMode = 'normal'; // normal, plan, solve
@@ -166,15 +167,60 @@ export async function startREPL(programInstance) {
   promptUser();
 }
 
+function truncateToWidth(text, width) {
+  const arr = Array.from(String(text));
+  let res = arr.join('');
+  while (arr.length > 0 && stringWidth(res) > width) {
+    arr.pop();
+    res = arr.join('');
+  }
+  return res;
+}
+
+function padToWidth(text, width) {
+  const s = String(text);
+  const truncated = truncateToWidth(s, width);
+  const pad = Math.max(0, width - stringWidth(truncated));
+  return truncated + ' '.repeat(pad);
+}
+
 function displayREPLWelcome() {
-  // Copilot-style compact banner
-  console.log(chalk.cyan('╭──────────────────────────────────────────────────────────────────────────────────────────────────╮'));
-  console.log(chalk.cyan('│  ')+chalk.white('╭─╮╭─╮')+chalk.cyan('                                                                                          │'));
-  console.log(chalk.cyan('│  ')+chalk.white('╰─╯╰─╯')+chalk.cyan('  ')+chalk.yellow.bold('ContriFlow CLI v1.0.0')+chalk.cyan('                                                                 │'));
-  console.log(chalk.cyan('│  ')+chalk.white('█ ▘▝ █')+chalk.cyan('  ')+chalk.gray('Describe a task or run a command to get started.')+chalk.cyan('                          │'));
-  console.log(chalk.cyan('│   ')+chalk.gray('▔▔▔▔')+chalk.cyan('                                                                                          │'));
-  console.log(chalk.cyan('│  ')+chalk.gray('Pick a model with /model. Use /help for commands. Type exit or quit to leave.')+chalk.cyan(' │'));
-  console.log(chalk.cyan('╰──────────────────────────────────────────────────────────────────────────────────────────────────╯'));
+  // Build banner lines with plain text and colored variants
+  const plainLines = [
+    '╭─╮╭─╮',
+    '╰─╯╰─╯  ContriFlow CLI v1.0.0',
+    '█ ▘▝ █  Describe a task or run a command to get started.',
+    '▔▔▔▔',
+    'Use /help for commands. Type exit or quit to leave.'
+  ];
+
+  const coloredLines = [
+    chalk.white('╭─╮╭─╮'),
+    chalk.white('╰─╯╰─╯') + '  ' + chalk.yellow.bold('ContriFlow CLI v1.0.0'),
+    chalk.white('█ ▘▝ █') + '  ' + chalk.gray('Describe a task or run a command to get started.'),
+    chalk.gray('▔▔▔▔'),
+    chalk.gray('Use /help for commands. Type exit or quit to leave.')
+  ];
+
+  // Compute content width based on visible width of plain lines
+  const maxContentWidth = Math.max(...plainLines.map(l => stringWidth(l)));
+  const contentWidth = Math.max(60, maxContentWidth); // minimum width to keep banner spacious
+  const dashCount = contentWidth + 2; // extra padding inside borders
+
+  // Top border
+  console.log(chalk.cyan('╭' + '─'.repeat(dashCount) + '╮'));
+
+  // Print each line with padding and colored content
+  for (let i = 0; i < plainLines.length; i++) {
+    const plain = plainLines[i];
+    const colored = coloredLines[i];
+    const pad = contentWidth - stringWidth(plain);
+    const padding = ' '.repeat(Math.max(0, pad));
+    console.log(chalk.cyan('│ ') + colored + padding + chalk.cyan(' │'));
+  }
+
+  // Bottom border
+  console.log(chalk.cyan('╰' + '─'.repeat(dashCount) + '╯'));
 
   // Quick command summary under the banner
   console.log('');
