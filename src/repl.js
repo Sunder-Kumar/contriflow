@@ -91,8 +91,8 @@ export async function startREPL(programInstance) {
         const command = args[0];
         const restArgs = args.slice(1);
 
-        // Create argv in the correct format for commander.js
-        const argv = [command, ...restArgs];
+        // Create argv in the format commander expects (include program name) to avoid state leakage between parses
+        const argv = ['node', 'contriflow', command, ...restArgs];
         
         try {
           // Suppress exit for REPL mode - setup exit override before parsing
@@ -114,7 +114,7 @@ export async function startREPL(programInstance) {
           };
 
           try {
-            await programInstance.parseAsync(argv, { from: 'user' });
+            await programInstance.parseAsync(argv);
           } finally {
             process.exit = _originalProcessExit;
             if (exitSuppressed) {
