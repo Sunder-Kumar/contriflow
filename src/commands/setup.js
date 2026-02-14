@@ -31,6 +31,8 @@ export function setupCommand(program) {
     .action(async (options) => {
       printHeader('Setup Repository');
 
+      let currentSpinner = null;
+
       try {
         let repoPath = options.repo;
 
@@ -50,26 +52,30 @@ export function setupCommand(program) {
 
         const [owner, repo] = repoPath.split('/');
 
-        const spinner = await startSpinner('Fetching repository details...');
+        currentSpinner = await startSpinner('Fetching repository details...');
+        const spinner = currentSpinner;
 
         const repoDetails = await getRepositoryDetails(owner, repo);
         spinner.succeed(chalk.green(`✓ Repository: ${repoDetails.fullName}`));
+        currentSpinner = null;
 
         if (options.issue) {
-          const issueSpinner = await startSpinner('Fetching issue details...');
+          currentSpinner = await startSpinner('Fetching issue details...');
+          const issueSpinner = currentSpinner;
           const issueDetails = await getIssueDetails(
             owner,
             repo,
             options.issue
           );
           issueSpinner.succeed();
+          currentSpinner = null;
 
           printSection('Issue Information');
           console.log(chalk.bold(issueDetails.title));
           console.log(chalk.dim(issueDetails.body.substring(0, 200) + '...'));
         }
 
-        const contribSpinner = await startSpinner(
+        currentSpinner = await startSpinner(
           'Checking for contribution guidelines...'
         );
         
@@ -77,11 +83,14 @@ export function setupCommand(program) {
         try {
           contrib = await getContributingGuidelines(owner, repo);
         } catch (error) {
-          contribSpinner.warn();
+          currentSpinner.warn();
+          currentSpinner = null;
         }
 
         if (contrib) {
-          contribSpinner.succeed(chalk.green('✓ Found contribution guidelines'));
+          // keep spinner reference for consistency
+          currentSpinner.succeed(chalk.green('✓ Found contribution guidelines'));
+          currentSpinner = null;
           const showContrib = await prompt([
             {
               type: 'confirm',
@@ -96,7 +105,14 @@ export function setupCommand(program) {
             console.log(contrib.substring(0, 500) + '...\n');
           }
         } else {
-          contribSpinner.warn(chalk.yellow('⚠ No CONTRIBUTING.md found'));
+          // spinner already warned or not set
+          if (currentSpinner) {
+            currentSpinner.warn(chalk.yellow('⚠ No CONTRIBUTING.md found'));
+            currentSpinner = null;
+          } else {
+            // nothing
+          }
+
           console.log(
             chalk.yellow('\n⚠️  This repository does not have contribution guidelines.')
           );
@@ -121,11 +137,14 @@ export function setupCommand(program) {
           console.log('');
         }
 
-        const forkSpinner = await startSpinner('Forking repository...');
+        currentSpinner = await startSpinner('Forking repository...');
+        const forkSpinner = currentSpinner;
         const forked = await forkRepository(owner, repo);
         forkSpinner.succeed(chalk.green(`✓ Forked to ${forked.fullName}`));
+        currentSpinner = null;
 
-        const cloneSpinner = await startSpinner('Cloning repository...');
+        currentSpinner = await startSpinner('Cloning repository...');
+        const cloneSpinner = currentSpinner;
         await fs.ensureDir(WORKSPACE_DIR);
         const localPath = path.join(WORKSPACE_DIR, repo);
 
@@ -133,6 +152,7 @@ export function setupCommand(program) {
         const dirExists = await fs.pathExists(localPath);
         if (dirExists) {
           cloneSpinner.warn(chalk.yellow(`⚠ Directory already exists at ${localPath}`));
+          currentSpinner = null;
           
           const action = await prompt([
             {
@@ -148,29 +168,43 @@ export function setupCommand(program) {
           ]);
 
           if (action.choice === 'Remove and re-clone') {
-            const confirmSpinner = await startSpinner('Removing existing directory...');
+            currentSpinner = await startSpinner('Removing existing directory...');
+            const confirmSpinner = currentSpinner;
             await fs.remove(localPath);
             confirmSpinner.succeed();
+            currentSpinner = null;
             
-            const recloneSpinner = await startSpinner('Cloning repository...');
+            currentSpinner = await startSpinner('Cloning repository...');
+            const recloneSpinner = currentSpinner;
             const git = simpleGit();
             await git.clone(forked.cloneUrl, localPath);
             recloneSpinner.succeed(chalk.green(`✓ Cloned to ${localPath}`));
+            currentSpinner = null;
           } else if (action.choice === 'Update existing repository (pull latest)') {
-            const pullSpinner = await startSpinner('Pulling latest changes...');
+            currentSpinner = await startSpinner('Pulling latest changes...');
+            const pullSpinner = currentSpinner;
             const repoGit = simpleGit(localPath);
             await repoGit.pull();
             pullSpinner.succeed(chalk.green(`✓ Updated repository`));
+            currentSpinner = null;
           } else {
             cloneSpinner.succeed(chalk.green(`✓ Using existing repository at ${localPath}`));
           }
         } else {
-          const git = simpleGit();
-          await git.clone(forked.cloneUrl, localPath);
-          cloneSpinner.succeed(chalk.green(`✓ Cloned to ${localPath}`));
+          try {
+            const git = simpleGit();
+            await git.clone(forked.cloneUrl, localPath);
+            cloneSpinner.succeed(chalk.green(`✓ Cloned to ${localPath}`));
+            currentSpinner = null;
+          } catch (err) {
+            if (cloneSpinner) cloneSpinner.fail(chalk.red(`✗ Failed to clone: ${err.message}`));
+            currentSpinner = null;
+            throw err;
+          }
         }
 
-        const upstreamSpinner = await startSpinner('Adding upstream remote...');
+        currentSpinner = await startSpinner('Adding upstream remote...');
+        const upstreamSpinner = currentSpinner;
         const repoGit = simpleGit(localPath);
         try {
           await repoGit.addRemote('upstream', repoDetails.cloneUrl);
@@ -184,6 +218,7 @@ export function setupCommand(program) {
           }
         }
         upstreamSpinner.succeed();
+        currentSpinner = null;
 
         printSection('Next Steps');
         printSuccess('Repository is ready!');
@@ -205,6 +240,9 @@ export function setupCommand(program) {
           )
         );
       } catch (error) {
+        if (currentSpinner) {
+          try { currentSpinner.fail(chalk.red(`✗ Setup failed: ${error.message}`)); } catch (e) {}
+        }
         printError(`Setup failed: ${error.message}`);
       }
     });
