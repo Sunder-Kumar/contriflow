@@ -174,8 +174,15 @@ function displayREPLWelcome() {
   console.log(chalk.cyan('│   ')+chalk.gray('▔▔▔▔')+chalk.cyan('                                                                                          │'));
   console.log(chalk.cyan('│  ')+chalk.gray('Pick a model with /model. Use /help for commands. Type exit or quit to leave.')+chalk.cyan(' │'));
   console.log(chalk.cyan('╰──────────────────────────────────────────────────────────────────────────────────────────────────╯'));
-}
 
+  // Quick command summary under the banner
+  console.log('');
+  console.log(chalk.yellow('📋 Commands: login, search, issues, fork, clone, setup, solve, guide, contribute, pr, dashboard, config'));
+  console.log(chalk.yellow('💡 Type /help for command list or /help <command> for details'));
+  console.log(chalk.yellow('🔀 Type shift+tab to switch modes (normal/plan/solve)'));
+  console.log(chalk.yellow('❌ Type exit or quit to leave'));
+  console.log('');
+}
 function getModeIndicator() {
   const indicators = {
     normal: '●',
