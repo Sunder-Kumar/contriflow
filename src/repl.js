@@ -11,6 +11,12 @@ export async function startREPL(programInstance) {
     terminal: true,
   });
 
+  // Permanently suppress process.exit while REPL is active to prevent commands from killing the session.
+  const _originalProcessExit = process.exit;
+  process.exit = (code) => {
+    console.log(chalk.yellow('⚠ process.exit suppressed in REPL. Type "exit" or "quit" to leave.'));
+  };
+
   displayREPLWelcome();
 
   const promptUser = () => {
@@ -29,7 +35,12 @@ export async function startREPL(programInstance) {
       if (trimmedInput.toLowerCase() === 'exit' || trimmedInput.toLowerCase() === 'quit') {
         console.log(chalk.yellow('\n👋 Thanks for using ContriFlow! Happy contributing!\n'));
         rl.close();
-        process.exit(0);
+        // Restore original process.exit and exit cleanly
+        if (typeof _originalProcessExit === 'function') {
+          process.exit = _originalProcessExit;
+          _originalProcessExit(0);
+        }
+        return;
       }
 
       // Handle mode switching
