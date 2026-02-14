@@ -23,15 +23,44 @@ import {
 const WORKSPACE_DIR = path.join(os.homedir(), '.contriflow', 'workspace');
 
 // Helpers to handle Windows locked-file errors (EBUSY/EPERM) by retrying
-async function removePathWithRetries(p, attempts = 6, baseDelay = 300) {
+async function removePathWithRetries(p, attempts = 8, baseDelay = 300) {
   for (let i = 0; i < attempts; i++) {
     try {
       await fs.remove(p);
       return;
     } catch (err) {
+      // If file is busy/locked on Windows, try extra cleanup steps before retrying
       if (err && (err.code === 'EBUSY' || err.code === 'EPERM' || err.code === 'ENOTEMPTY')) {
+        try {
+          // If it's a file, try unlinking directly
+          if (await fs.pathExists(p)) {
+            const stat = await fs.stat(p);
+            if (stat.isFile()) {
+              try { await fs.unlink(p); return; } catch (e) {}
+            } else {
+              // Try to remove common locked tmp pack files inside .git/objects/pack
+              const packDir = path.join(p, '.git', 'objects', 'pack');
+              if (await fs.pathExists(packDir)) {
+                const files = await fs.readdir(packDir);
+                for (const f of files) {
+                  if (f && f.startsWith('tmp_pack')) {
+                    const fp = path.join(packDir, f);
+                    try { await fs.unlink(fp); } catch (e) {}
+                  }
+                }
+              }
+
+              // Try to make files writable and remove again
+              try {
+                await fs.chmod(p, 0o666);
+              } catch (e) {}
+            }
+          }
+        } catch (inner) {
+          // ignore inner cleanup errors
+        }
+
         if (i === attempts - 1) throw err;
-        // exponential backoff
         await new Promise((r) => setTimeout(r, baseDelay * (i + 1)));
         continue;
       }
