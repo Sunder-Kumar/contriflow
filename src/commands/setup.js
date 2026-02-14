@@ -234,8 +234,21 @@ export function setupCommand(program) {
           if (action.choice === 'Remove and re-clone') {
             currentSpinner = await startSpinner('Removing existing directory...');
             const confirmSpinner = currentSpinner;
-            await removePathWithRetries(localPath);
-            confirmSpinner.succeed();
+            try {
+              await removePathWithRetries(localPath);
+              confirmSpinner.succeed();
+            } catch (rmErr) {
+              // If removal fails due to locked files, attempt to rename the directory as a fallback
+              try {
+                const backupPath = `${localPath}.backup.${Date.now()}`;
+                await fs.move(localPath, backupPath, { overwrite: false });
+                confirmSpinner.warn(chalk.yellow(`⚠ Could not fully remove directory, renamed to ${backupPath}`));
+              } catch (moveErr) {
+                // If move also fails, surface original error
+                confirmSpinner.fail(chalk.red(`✗ Failed to remove existing directory: ${rmErr.message}`));
+                throw rmErr;
+              }
+            }
             currentSpinner = null;
             
             currentSpinner = await startSpinner('Cloning repository...');
