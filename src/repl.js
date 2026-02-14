@@ -167,6 +167,15 @@ export async function startREPL(programInstance) {
 }
 
 function displayREPLWelcome() {
+  // Copilot-style compact banner
+  console.log(chalk.cyan('╭──────────────────────────────────────────────────────────────────────────────────────────────────╮'));
+  console.log(chalk.cyan('│  ')+chalk.white('╭─╮╭─╮')+chalk.cyan('                                                                                          │'));
+  console.log(chalk.cyan('│  ')+chalk.white('╰─╯╰─╯')+chalk.cyan('  ')+chalk.yellow.bold('ContriFlow CLI v1.0.0')+chalk.cyan('                                                                 │'));
+  console.log(chalk.cyan('│  ')+chalk.white('█ ▘▝ █')+chalk.cyan('  ')+chalk.gray('Describe a task or run a command to get started.')+chalk.cyan('                          │'));
+  console.log(chalk.cyan('│   ')+chalk.gray('▔▔▔▔')+chalk.cyan('                                                                                          │'));
+  console.log(chalk.cyan('│  ')+chalk.gray('Pick a model with /model. Use /help for commands. Type exit or quit to leave.')+chalk.cyan(' │'));
+  console.log(chalk.cyan('╰──────────────────────────────────────────────────────────────────────────────────────────────────╯'));
+}
   console.log('');
   console.log(chalk.cyan('═══════════════════════════════════════════════════════════'));
   console.log(chalk.cyan('🚀  Welcome to ContriFlow Interactive Mode 🚀'));
