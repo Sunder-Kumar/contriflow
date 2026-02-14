@@ -411,8 +411,8 @@ function generateBadgesGrid(badges) {
     const badge1 = badgesToShow[i];
     const badge2 = badgesToShow[i + 1];
     const name1 = padToWidth((badge1 && badge1.name) || '', 25);
-    const name2 = badge2 ? padToWidth(badge2.name, 22) : ' '.repeat(22);
-    grid += `│ ${name1} ${name2} │\n`;
+    const name2 = badge2 ? padToWidth(badge2.name, 25) : ' '.repeat(25);
+    grid += `│ ${name1}  ${name2} │\n`;
   }
 
   grid += `└─────────────────────────────────────────────────────────┘\n`;
