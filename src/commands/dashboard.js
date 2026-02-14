@@ -35,7 +35,9 @@ export function dashboardCommand(program) {
 async function handleDashboardCommand(options) {
   try {
     // DEBUG: show parsed options to diagnose incorrect behavior in REPL
-    try { console.log(chalk.gray('DEBUG: dashboard options -> ' + JSON.stringify(options))); } catch (e) {}
+    if (process.env.DEBUG) {
+      try { console.log(chalk.gray('DEBUG: dashboard options -> ' + JSON.stringify(options))); } catch (e) {}
+    }
     const cfg = await loadConfig();
     if (!cfg.githubToken) {
       throw new Error('Not authenticated. Run: contriflow login');
