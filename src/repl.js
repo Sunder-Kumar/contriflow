@@ -74,11 +74,28 @@ export async function startREPL(programInstance) {
               console.log(chalk.red(`✗ ${err.message}`));
             }
           });
-          
-          await programInstance.parseAsync(argv, { from: 'user' });
+
+          // Also guard against commands calling process.exit directly by temporarily overriding it
+          const _originalProcessExit = process.exit;
+          let exitSuppressed = false;
+          process.exit = (code) => {
+            exitSuppressed = true;
+            const e = new Error(`process.exit(${code}) suppressed in REPL`);
+            e.code = 'repl.processExitSuppressed';
+            throw e;
+          };
+
+          try {
+            await programInstance.parseAsync(argv, { from: 'user' });
+          } finally {
+            process.exit = _originalProcessExit;
+            if (exitSuppressed) {
+              console.log(chalk.yellow('⚠ Command attempted to exit; exit suppressed in REPL.'));
+            }
+          }
         } catch (error) {
-          if (error.code === 'commander.exitOverride') {
-            // This is a normal exit override, ignore it
+          if (error.code === 'commander.exitOverride' || error.code === 'repl.processExitSuppressed') {
+            // ignore suppressed exits
           } else if (error.code === 'commander.unknownCommand') {
             console.log(chalk.red(`✗ Unknown command: ${command}`));
             console.log(chalk.gray('💡 Type /help to see available commands'));
