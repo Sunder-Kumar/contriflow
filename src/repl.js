@@ -17,7 +17,6 @@ export async function startREPL(programInstance) {
     console.log(chalk.yellow('⚠ process.exit suppressed in REPL. Type "exit" or "quit" to leave.'));
   };
 
-  // Debug hooks were used during troubleshooting but are removed to keep normal exits clean.
   // Keep the event loop alive so REPL isn't terminated by libraries closing handles unexpectedly.
   const _keepAliveHandle = setInterval(() => {}, 24 * 60 * 60 * 1000);
 
@@ -115,8 +114,8 @@ export async function startREPL(programInstance) {
 
           try {
             if (process.env.DEBUG) {
-            try { console.log(chalk.gray('DEBUG: parse argv -> ' + JSON.stringify(argv))); } catch (e) {}
-          }
+              try { console.log(chalk.gray('DEBUG: parse argv -> ' + JSON.stringify(argv))); } catch (e) {}
+            }
             await programInstance.parseAsync(argv);
           } finally {
             process.exit = _originalProcessExit;
@@ -175,19 +174,6 @@ function displayREPLWelcome() {
   console.log(chalk.cyan('│   ')+chalk.gray('▔▔▔▔')+chalk.cyan('                                                                                          │'));
   console.log(chalk.cyan('│  ')+chalk.gray('Pick a model with /model. Use /help for commands. Type exit or quit to leave.')+chalk.cyan(' │'));
   console.log(chalk.cyan('╰──────────────────────────────────────────────────────────────────────────────────────────────────╯'));
-}
-  console.log('');
-  console.log(chalk.cyan('═══════════════════════════════════════════════════════════'));
-  console.log(chalk.cyan('🚀  Welcome to ContriFlow Interactive Mode 🚀'));
-  console.log(chalk.cyan('═══════════════════════════════════════════════════════════'));
-  console.log('');
-  console.log(chalk.yellow('📋 Commands: login, search, issues, fork, clone, setup, solve, guide, contribute, pr, dashboard, config'));
-  console.log(chalk.yellow('💡 Type /help for command list or /help <command> for details'));
-  console.log(chalk.yellow('🔀 Type shift+tab to switch modes (normal/plan/solve)'));
-  console.log(chalk.yellow('❌ Type exit or quit to leave'));
-  console.log('');
-  console.log(chalk.gray('────────────────────────────────────────────────────────'));
-  console.log('');
 }
 
 function getModeIndicator() {
