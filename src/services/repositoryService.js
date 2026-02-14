@@ -11,7 +11,12 @@ export async function searchRepositories(keyword, options = {}) {
     perPage = 10,
   } = options;
 
-  let query = `${keyword} stars:${minStars}..${maxStars}`;
+  // Sanitize numeric inputs to avoid NaN ending up in the GitHub search query
+  const minStarsInt = Number.isInteger(parseInt(minStars)) ? parseInt(minStars) : 10;
+  const maxStarsInt = Number.isInteger(parseInt(maxStars)) ? parseInt(maxStars) : 50000;
+  const perPageInt = Number.isInteger(parseInt(perPage)) ? parseInt(perPage) : 10;
+
+  let query = `${keyword} stars:${minStarsInt}..${maxStarsInt}`;
   if (language) {
     query += ` language:${language}`;
   }
