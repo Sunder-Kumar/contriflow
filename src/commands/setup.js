@@ -22,6 +22,41 @@ import {
 
 const WORKSPACE_DIR = path.join(os.homedir(), '.contriflow', 'workspace');
 
+// Helpers to handle Windows locked-file errors (EBUSY/EPERM) by retrying
+async function removePathWithRetries(p, attempts = 6, baseDelay = 300) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      await fs.remove(p);
+      return;
+    } catch (err) {
+      if (err && (err.code === 'EBUSY' || err.code === 'EPERM' || err.code === 'ENOTEMPTY')) {
+        if (i === attempts - 1) throw err;
+        // exponential backoff
+        await new Promise((r) => setTimeout(r, baseDelay * (i + 1)));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
+async function cloneWithRetries(gitUrl, localPath, attempts = 4, baseDelay = 500) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const git = simpleGit();
+      await git.clone(gitUrl, localPath);
+      return;
+    } catch (err) {
+      const isBusy = err && (err.code === 'EBUSY' || err.code === 'EPERM' || (err.message && err.message.includes('EBUSY')));
+      if (isBusy && i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, baseDelay * (i + 1)));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 export function setupCommand(program) {
   program
     .command('setup')
@@ -170,14 +205,13 @@ export function setupCommand(program) {
           if (action.choice === 'Remove and re-clone') {
             currentSpinner = await startSpinner('Removing existing directory...');
             const confirmSpinner = currentSpinner;
-            await fs.remove(localPath);
+            await removePathWithRetries(localPath);
             confirmSpinner.succeed();
             currentSpinner = null;
             
             currentSpinner = await startSpinner('Cloning repository...');
             const recloneSpinner = currentSpinner;
-            const git = simpleGit();
-            await git.clone(forked.cloneUrl, localPath);
+            await cloneWithRetries(forked.cloneUrl, localPath);
             recloneSpinner.succeed(chalk.green(`✓ Cloned to ${localPath}`));
             currentSpinner = null;
           } else if (action.choice === 'Update existing repository (pull latest)') {
@@ -192,8 +226,7 @@ export function setupCommand(program) {
           }
         } else {
           try {
-            const git = simpleGit();
-            await git.clone(forked.cloneUrl, localPath);
+            await cloneWithRetries(forked.cloneUrl, localPath);
             cloneSpinner.succeed(chalk.green(`✓ Cloned to ${localPath}`));
             currentSpinner = null;
           } catch (err) {
