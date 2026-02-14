@@ -6,7 +6,9 @@
 
 A powerful GitHub automation CLI tool that helps you discover, contribute to, and track your open-source contributions effortlessly.
 
-## Features
+## 🤖 Built with GitHub Copilot CLI
+
+ContriFlow CLI was developed with extensive help from GitHub Copilot CLI has features like:
 
 - ✅ **GitHub Authentication** - Secure token-based authentication
 - 🔍 **Repository Search** - Find projects by keywords and filter by stars/language
@@ -56,20 +58,7 @@ This launches an interactive prompt where you can run multiple commands without 
 
 ────────────────────────────────────────────────────────
 
-❯ ● issues facebook/react --label good-first-issue
-[displays issues...]
-
-❯ ● shift+tab
-✓ Switched to 📋 Plan Mode
-
-❯ ◆ setup --repo facebook/react --issue 12345
-[sets up repository...]
-
-❯ ◆ dashboard
-[shows your stats...]
-
-❯ ◆ exit
-👋 Thanks for using ContriFlow! Happy contributing!
+❯ ●
 ```
 
 ### REPL Commands
@@ -446,6 +435,9 @@ contriflow config --set-ai-key sk-or-v1-xxxxxxxxxxxx
 ```
 Get a key at: https://openrouter.ai
 
+> **Note:** OpenRouter is optional. ContriFlow works fully without AI features and can be used as a standard GitHub 
+automation CLI.
+
 For comprehensive guide: See [SOLVE_GUIDE.md](./SOLVE_GUIDE.md)
 
 For testing and verification: See [SOLVE_TESTING.md](./SOLVE_TESTING.md)
@@ -779,13 +771,6 @@ We welcome contributions! Here's how to contribute to ContriFlow CLI:
 
 MIT License - see LICENSE file for details
 
-## Support
-
-- 📖 [Documentation](./docs)
-- 🐛 [Report Issues](https://github.com/yourusername/contriflow-cli/issues)
-- 💬 [Discussions](https://github.com/yourusername/contriflow-cli/discussions)
-- 📧 Email: support@contriflow.dev
-
 ## Roadmap
 
 - [ ] Web dashboard for contribution tracking
@@ -809,4 +794,5 @@ Built with:
 
 ---
 
-**Happy Contributing! 🚀** Build your open-source portfolio with ContriFlow.
+**Happy Contributing! 🚀** Let’s make open source accessible for everyone.
+
