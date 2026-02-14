@@ -407,12 +407,9 @@ function generateBadgesGrid(badges) {
 ├─────────────────────────────────────────────────────────┤
 `);
 
-  for (let i = 0; i < badgesToShow.length; i += 2) {
-    const badge1 = badgesToShow[i];
-    const badge2 = badgesToShow[i + 1];
-    const name1 = padToWidth((badge1 && badge1.name) || '', 25);
-    const name2 = badge2 ? padToWidth(badge2.name, 25) : ' '.repeat(25);
-    grid += `│ ${name1}  ${name2} │\n`;
+  for (const badge of badgesToShow) {
+    const name = padToWidth(badge.name || '', 55);
+    grid += `│ ${name} │\n`;
   }
 
   grid += `└─────────────────────────────────────────────────────────┘\n`;
