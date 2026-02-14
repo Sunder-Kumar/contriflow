@@ -58,9 +58,10 @@ export function issuesCommand(program) {
 async function handleGlobalIssueSearch(options) {
   printHeader('🔍 Global Issue Search');
 
+  let spinner = null;
   try {
     const label = options.label || 'good-first-issue';
-    const spinner = await startSpinner('Searching for issues...');
+    spinner = await startSpinner('Searching for issues...');
 
     const issues = await searchIssues({
       label,
@@ -99,44 +100,53 @@ async function handleGlobalIssueSearch(options) {
         },
       ]);
 
-      const spinner2 = await startSpinner('Fetching issue details...');
-      const details = await getIssueDetails(
-        selected.issue.owner,
-        selected.issue.repo,
-        selected.issue.number
-      );
-      spinner2.succeed();
+      let spinner2 = null;
+      try {
+        spinner2 = await startSpinner('Fetching issue details...');
+        const details = await getIssueDetails(
+          selected.issue.owner,
+          selected.issue.repo,
+          selected.issue.number
+        );
+        spinner2.succeed();
 
-      printSection('Issue Details');
-      console.log(chalk.bold(`Title: ${details.title}`));
-      console.log(chalk.gray(`Repository: ${selected.issue.repository}`));
-      console.log(chalk.gray(`Author: ${details.author}`));
-      console.log(
-        chalk.gray(
-          `Created: ${new Date(details.createdAt).toLocaleDateString()}`
-        )
-      );
-      console.log(`\n${chalk.bold('Description:')}\n${details.body || chalk.dim('No description')}`);
-      console.log(chalk.blue(`\nView online: ${details.url}`));
-
-      const next = await prompt([
-        {
-          type: 'confirm',
-          name: 'proceed',
-          message: 'Would you like to fork and work on this issue?',
-        },
-      ]);
-
-      if (next.proceed) {
+        printSection('Issue Details');
+        console.log(chalk.bold(`Title: ${details.title}`));
+        console.log(chalk.gray(`Repository: ${selected.issue.repository}`));
+        console.log(chalk.gray(`Author: ${details.author}`));
         console.log(
-          chalk.cyan(
-            `\nRun: contriflow setup --repo ${selected.issue.owner}/${selected.issue.repo} --issue ${selected.issue.number}`
+          chalk.gray(
+            `Created: ${new Date(details.createdAt).toLocaleDateString()}`
           )
         );
+        console.log(`\n${chalk.bold('Description:')}\n${details.body || chalk.dim('No description')}`);
+        console.log(chalk.blue(`\nView online: ${details.url}`));
+
+        const next = await prompt([
+          {
+            type: 'confirm',
+            name: 'proceed',
+            message: 'Would you like to fork and work on this issue?',
+          },
+        ]);
+
+        if (next.proceed) {
+          console.log(
+            chalk.cyan(
+              `\nRun: contriflow setup --repo ${selected.issue.owner}/${selected.issue.repo} --issue ${selected.issue.number}`
+            )
+          );
+        }
+      } catch (err) {
+        if (spinner2) spinner2.fail(chalk.red(`✗ Failed to fetch issue details: ${err.message}`));
+        else if (spinner) spinner.fail(chalk.red(`✗ Failed during issue selection: ${err.message}`));
+        return;
       }
     }
   } catch (error) {
-    throw error;
+    if (spinner) spinner.fail(chalk.red(`✗ Failed to fetch issues: ${error.message}`));
+    else printError(`Failed to fetch issues: ${error.message}`);
+    return;
   }
 }
 
@@ -154,8 +164,9 @@ async function handleRepoSpecificIssues(repo, options) {
   const labelText = options.label ? ` with label: ${options.label}` : '';
   printHeader(`📋 Issues - ${chalk.bold(repo)}${labelText}`);
 
+  let spinner = null;
   try {
-    const spinner = await startSpinner(`Fetching issues from ${repo}...`);
+    spinner = await startSpinner(`Fetching issues from ${repo}...`);
 
     const issues = await listRepositoryIssues(owner, repoName, {
       label: options.label || null,
@@ -195,49 +206,58 @@ async function handleRepoSpecificIssues(repo, options) {
         },
       ]);
 
-      const spinner2 = await startSpinner('Fetching issue details...');
-      const details = await getIssueDetails(owner, repoName, selected.issue.number);
-      spinner2.succeed();
+      let spinner2 = null;
+      try {
+        spinner2 = await startSpinner('Fetching issue details...');
+        const details = await getIssueDetails(owner, repoName, selected.issue.number);
+        spinner2.succeed();
 
-      printSection('Issue Details');
-      console.log(chalk.bold(`Title: ${details.title}`));
-      console.log(chalk.gray(`Number: #${details.number}`));
-      console.log(chalk.gray(`Author: ${details.author}`));
-      console.log(chalk.gray(`State: ${chalk.cyan(details.state)}`));
-      console.log(
-        chalk.gray(
-          `Created: ${new Date(details.createdAt).toLocaleDateString()}`
-        )
-      );
-      if (details.labels.length > 0) {
+        printSection('Issue Details');
+        console.log(chalk.bold(`Title: ${details.title}`));
+        console.log(chalk.gray(`Number: #${details.number}`));
+        console.log(chalk.gray(`Author: ${details.author}`));
+        console.log(chalk.gray(`State: ${chalk.cyan(details.state)}`));
         console.log(
           chalk.gray(
-            `Labels: ${details.labels.map((l) => chalk.bgCyan.black(` ${l} `)).join(' ')}`
+            `Created: ${new Date(details.createdAt).toLocaleDateString()}`
           )
         );
-      }
-      console.log(`\n${chalk.bold('Description:')}\n${details.body || chalk.dim('No description')}`);
-      console.log(chalk.blue(`\nView online: ${details.url}`));
-      console.log(chalk.gray(`Comments: ${details.comments}`));
+        if (details.labels.length > 0) {
+          console.log(
+            chalk.gray(
+              `Labels: ${details.labels.map((l) => chalk.bgCyan.black(` ${l} `)).join(' ')}`
+            )
+          );
+        }
+        console.log(`\n${chalk.bold('Description:')}\n${details.body || chalk.dim('No description')}`);
+        console.log(chalk.blue(`\nView online: ${details.url}`));
+        console.log(chalk.gray(`Comments: ${details.comments}`));
 
-      const next = await prompt([
-        {
-          type: 'confirm',
-          name: 'proceed',
-          message: 'Would you like to fork and work on this issue?',
-        },
-      ]);
+        const next = await prompt([
+          {
+            type: 'confirm',
+            name: 'proceed',
+            message: 'Would you like to fork and work on this issue?',
+          },
+        ]);
 
-      if (next.proceed) {
-        console.log(
-          chalk.cyan(
-            `\nRun: contriflow setup --repo ${repo} --issue ${selected.issue.number}`
-          )
-        );
+        if (next.proceed) {
+          console.log(
+            chalk.cyan(
+              `\nRun: contriflow setup --repo ${repo} --issue ${selected.issue.number}`
+            )
+          );
+        }
+      } catch (err) {
+        if (spinner2) spinner2.fail(chalk.red(`✗ Failed to fetch issue details: ${err.message}`));
+        else if (spinner) spinner.fail(chalk.red(`✗ Failed during issue selection: ${err.message}`));
+        return;
       }
     }
   } catch (error) {
-    throw error;
+    if (spinner) spinner.fail(chalk.red(`✗ Failed to fetch issues: ${error.message}`));
+    else printError(`Failed to fetch issues: ${error.message}`);
+    return;
   }
 }
 
