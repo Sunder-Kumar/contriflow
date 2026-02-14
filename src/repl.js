@@ -69,6 +69,15 @@ export async function startREPL(programInstance) {
 
       // Handle help commands
       if (trimmedInput.startsWith('/')) {
+        // Clean up the user's echoed input line so output doesn't look like a duplicate
+        try {
+          // Move cursor up one line and clear it (works in most terminals)
+          readline.moveCursor(process.stdout, 0, -1);
+          readline.clearLine(process.stdout, 0);
+        } catch (e) {
+          // ignore if terminal doesn't support cursor movement
+        }
+
         handleHelpCommand(trimmedInput, programInstance);
         promptUser();
         return;
