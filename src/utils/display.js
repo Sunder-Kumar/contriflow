@@ -67,8 +67,22 @@ ${chalk.gray(`Last Contribution: ${stats.lastContribution || 'Never'}`)}
   `;
 }
 
-export function displayTable(headers, rows) {
-  const colWidths = headers.map((h) => h.length);
+export function displayTable(dataOrHeaders, rows) {
+  // Support two calling styles:
+  // 1) displayTable(headersArray, rowsArray)
+  // 2) displayTable(2DArray) where first row is headers
+  let headers = dataOrHeaders;
+  if (
+    rows === undefined &&
+    Array.isArray(dataOrHeaders) &&
+    dataOrHeaders.length > 0 &&
+    Array.isArray(dataOrHeaders[0])
+  ) {
+    headers = dataOrHeaders[0];
+    rows = dataOrHeaders.slice(1);
+  }
+
+  const colWidths = headers.map((h) => String(h).length);
 
   rows.forEach((row) => {
     row.forEach((cell, i) => {
@@ -76,16 +90,15 @@ export function displayTable(headers, rows) {
     });
   });
 
-  console.log(
-    headers.map((h, i) => chalk.bold(h.padEnd(colWidths[i]))).join(' | ')
-  );
-  console.log(colWidths.map((w) => '─'.repeat(w)).join('─┼─'));
+  const lines = [];
+  lines.push(headers.map((h, i) => chalk.bold(String(h).padEnd(colWidths[i]))).join(' | '));
+  lines.push(colWidths.map((w) => '─'.repeat(w)).join('─┼─'));
 
   rows.forEach((row) => {
-    console.log(
-      row.map((cell, i) => String(cell).padEnd(colWidths[i])).join(' | ')
-    );
+    lines.push(row.map((cell, i) => String(cell).padEnd(colWidths[i])).join(' | '));
   });
+
+  return lines.join('\n');
 }
 
 export function clearScreen() {
