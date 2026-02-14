@@ -17,6 +17,24 @@ export async function startREPL(programInstance) {
     console.log(chalk.yellow('⚠ process.exit suppressed in REPL. Type "exit" or "quit" to leave.'));
   };
 
+  // Debug hooks to help diagnose unexpected exits in user environments
+  process.on('exit', (code) => {
+    try {
+      // eslint-disable-next-line no-console
+      console.log(chalk.red(`REPL process 'exit' event fired with code: ${code}`));
+    } catch (e) {}
+  });
+  process.on('uncaughtException', (err) => {
+    try {
+      console.log(chalk.red('REPL uncaughtException:'), err && err.stack ? err.stack : err);
+    } catch (e) {}
+  });
+  process.on('unhandledRejection', (reason) => {
+    try {
+      console.log(chalk.red('REPL unhandledRejection:'), reason);
+    } catch (e) {}
+  });
+
   displayREPLWelcome();
 
   const promptUser = () => {
