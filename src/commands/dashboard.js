@@ -390,6 +390,13 @@ function generateStatsBox(stats, progress) {
   `);
 }
 
+function padToWidth(text, width) {
+  const s = String(text);
+  const truncated = s.length > width ? s.substring(0, width) : s;
+  const pad = Math.max(0, width - stringWidth(truncated));
+  return truncated + ' '.repeat(pad);
+}
+
 function generateBadgesGrid(badges) {
   if (badges.length === 0) return '';
 
@@ -403,8 +410,8 @@ function generateBadgesGrid(badges) {
   for (let i = 0; i < badgesToShow.length; i += 2) {
     const badge1 = badgesToShow[i];
     const badge2 = badgesToShow[i + 1];
-    const name1 = badge1.name.substring(0, 25).padEnd(25);
-    const name2 = badge2 ? badge2.name.substring(0, 22).padEnd(22) : ''.padEnd(22);
+    const name1 = padToWidth((badge1 && badge1.name) || '', 25);
+    const name2 = badge2 ? padToWidth(badge2.name, 22) : ' '.repeat(22);
     grid += `│ ${name1} ${name2} │\n`;
   }
 
