@@ -94,13 +94,8 @@ export async function startREPL(programInstance) {
         const argv = ['node', 'contriflow', command, ...restArgs];
         
         try {
-          // Suppress exit for REPL mode - setup exit override before parsing
-          programInstance.exitOverride((err) => {
-            // Just suppress the exit, let REPL continue
-            if (err) {
-              console.log(chalk.red(`✗ ${err.message}`));
-            }
-          });
+          // Suppress exit for REPL mode - let commander throw so catch block can handle known exit codes
+          programInstance.exitOverride();
 
           // Also guard against commands calling process.exit directly by temporarily overriding it
           const _originalProcessExit = process.exit;
