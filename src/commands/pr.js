@@ -22,7 +22,7 @@ import {
 } from '../utils/display.js';
 import { loadConfig } from '../config/configManager.js';
 
-async function handlePRCommand(options, issueNumber, repo) {
+async function handlePRCommand(issueNumber, repo, options) {
   try {
     // Validate inputs
     if (!issueNumber || !repo) {
