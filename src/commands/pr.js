@@ -71,12 +71,9 @@ async function handlePRCommand(issueNumber, repo, options) {
 
     // Display issue info
     printSection('Issue Details');
-    displayTable([{
-      'Title': issue.title,
-      'Number': `#${issue.number}`,
-      'State': issue.state,
-      'Author': issue.user.login
-    }]);
+    const issueHeaders = ['Title', 'Number', 'State', 'Author'];
+    const issueRows = [[issue.title, `#${issue.number}`, issue.state, issue.user.login]];
+    console.log(displayTable(issueHeaders, issueRows));
 
     // Get user info
     spinner = await startSpinner('Fetching user information...');
@@ -212,13 +209,9 @@ async function handlePRCommand(issueNumber, repo, options) {
 
       // Display PR info
       printSection('Pull Request Created');
-      displayTable([{
-        'PR Number': `#${pr.number}`,
-        'Title': pr.title,
-        'Branch': `${branchName} → ${defaultBranch}`,
-        'Status': 'Open',
-        'URL': pr.html_url
-      }]);
+      const prHeaders = ['PR Number', 'Title', 'Branch', 'Status', 'URL'];
+      const prRows = [[`#${pr.number}`, pr.title, `${branchName} → ${defaultBranch}`, 'Open', pr.html_url]];
+      console.log(displayTable(prHeaders, prRows));
 
       // Push branch to GitHub
       spinner = await startSpinner('Pushing branch to GitHub...');
