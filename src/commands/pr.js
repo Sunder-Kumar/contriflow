@@ -3,6 +3,8 @@ import path from 'path';
 import os from 'os';
 import { simpleGit } from 'simple-git';
 import { Octokit } from '@octokit/rest';
+import { generateIssueSolution } from '../services/aiService.js';
+import { exec } from 'child_process';
 import {
   createPullRequest,
   getDefaultBranch,
@@ -241,7 +243,27 @@ async function handlePRCommand(issueNumber, repo, options) {
     spinner = await startSpinner('Creating pull request on GitHub...');
     try {
       const prTitle = buildPRTitle(issueNumber, issue.title);
-      const prBody = buildPRDescription(issueNumber, issue.title);
+
+      // Try to generate an AI-assisted PR description if AI key is configured
+      let solution = null;
+      try {
+        const cfg = await loadConfig();
+        if (cfg.openRouterKey) {
+          const solSpinner = await startSpinner('Generating AI-assisted PR description...');
+          try {
+            solution = await generateIssueSolution(issue.title, issue.body || issue.title, `${owner}/${repoName}`, 'JavaScript');
+            solSpinner.succeed('AI description generated');
+          } catch (aiErr) {
+            solSpinner.fail('AI generation failed');
+            printInfo(`Skipping AI description: ${aiErr.message}`);
+            solution = null;
+          }
+        }
+      } catch (cfgErr) {
+        // ignore config load errors
+      }
+
+      const prBody = buildPRDescription(issueNumber, issue.title, solution);
 
       // Determine remote owner for head ref (in case origin is a fork)
       let originOwner = null;
@@ -272,6 +294,16 @@ async function handlePRCommand(issueNumber, repo, options) {
       const prRows = [[`#${pr.number}`, pr.title, `${branchName} → ${defaultBranch}`, 'Open', pr.html_url]];
       console.log(displayTable(prHeaders, prRows));
 
+      // If AI solution available, post as a comment on the PR for reviewers
+      if (solution) {
+        try {
+          await octokit.issues.createComment({ owner, repo: repoName, issue_number: pr.number, body: `AI-generated explanation and suggested changes:\n\n${solution}` });
+          printInfo('Posted AI explanation as a PR comment');
+        } catch (commentErr) {
+          printInfo('Failed to post AI comment: ' + commentErr.message);
+        }
+      }
+
       // Push branch to GitHub
       spinner = await startSpinner('Pushing branch to GitHub...');
       try {
@@ -293,6 +325,14 @@ async function handlePRCommand(issueNumber, repo, options) {
 
       printSuccess(`\n✨ Pull Request #${pr.number} created successfully!`);
       printInfo(`Open in browser: ${pr.html_url}`);
+
+      // Try to open the PR URL in the default browser
+      try {
+        const cmd = process.platform === 'win32' ? `start "" "${pr.html_url}"` : process.platform === 'darwin' ? `open "${pr.html_url}"` : `xdg-open "${pr.html_url}"`;
+        exec(cmd);
+      } catch (openErr) {
+        // ignore
+      }
 
     } catch (err) {
       spinner.fail('Failed to create pull request');
