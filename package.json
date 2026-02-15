@@ -1,6 +1,6 @@
 {
   "name": "contriflow-cli",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "A GitHub automation tool to find and contribute to open-source projects with ease",
   "main": "src/index.js",
   "bin": {
