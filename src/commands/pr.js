@@ -115,15 +115,35 @@ async function handlePRCommand(issueNumber, repo, options) {
       throw err;
     }
 
-    // Create feature branch
+    // Create or switch to feature branch
     const branchName = buildBranchName(issueNumber, issue.title);
-    spinner = await startSpinner(`Creating branch: ${branchName}...`);
+    // Check if branch already exists locally
     try {
-      await git.checkout(['-b', branchName]);
-      spinner.succeed(`Branch created: ${branchName}`);
+      const localBranches = await git.branchLocal();
+      if (localBranches.all.includes(branchName)) {
+        spinner = await startSpinner(`Switching to existing branch: ${branchName}...`);
+        await git.checkout(branchName);
+        spinner.succeed(`Switched to existing branch: ${branchName}`);
+      } else {
+        spinner = await startSpinner(`Creating branch: ${branchName}...`);
+        await git.checkout(['-b', branchName]);
+        spinner.succeed(`Branch created: ${branchName}`);
+      }
     } catch (err) {
-      spinner.fail('Failed to create branch');
-      throw new Error(`Branch creation failed: ${err.message}`);
+      // If branch creation failed because it already exists remotely, try to checkout
+      if (err && err.message && err.message.includes('already exists')) {
+        try {
+          spinner = await startSpinner(`Switching to existing branch: ${branchName}...`);
+          await git.checkout(branchName);
+          spinner.succeed(`Switched to existing branch: ${branchName}`);
+        } catch (e) {
+          spinner && spinner.fail('Failed to switch to existing branch');
+          throw new Error(`Branch checkout failed: ${e.message}`);
+        }
+      } else {
+        spinner && spinner.fail('Failed to create or switch branch');
+        throw new Error(`Branch creation failed: ${err.message}`);
+      }
     }
 
     // Check for patch file
