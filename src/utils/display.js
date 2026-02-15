@@ -36,6 +36,15 @@ export async function startSpinner(message) {
 }
 
 export async function prompt(questions) {
+  // Convenience: accept a string message and return a boolean confirm
+  if (typeof questions === 'string') {
+    const answer = await inquirer.prompt([
+      { type: 'confirm', name: 'confirm', message: questions }
+    ]);
+    return answer.confirm;
+  }
+
+  // Otherwise delegate to inquirer as-is
   return inquirer.prompt(questions);
 }
 
