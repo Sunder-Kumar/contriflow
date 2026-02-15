@@ -1,12 +1,19 @@
 {
   "name": "contriflow-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A GitHub automation tool to find and contribute to open-source projects with ease",
   "main": "src/index.js",
   "bin": {
     "contriflow": "src/index.js"
   },
   "type": "module",
+  "private": false,
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
