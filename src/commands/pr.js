@@ -330,16 +330,39 @@ async function handlePRCommand(issueNumber, repo, options) {
 
       const headRef = originOwner ? `${originOwner}:${branchName}` : branchName;
 
-      const pr = await createPullRequest(
-        owner,
-        repoName,
-        headRef,
-        defaultBranch,
-        prTitle,
-        prBody
-      );
-
-      spinner.succeed('Pull request created!');
+      let pr;
+      try {
+        pr = await createPullRequest(
+          owner,
+          repoName,
+          headRef,
+          defaultBranch,
+          prTitle,
+          prBody
+        );
+        spinner.succeed('Pull request created!');
+      } catch (createErr) {
+        // Handle common permission error when head includes remote owner
+        if (createErr.message && createErr.message.includes('Resource not accessible by personal access token')) {
+          printInfo('GitHub API rejected head ref with remote owner. Retrying with local branch ref...');
+          try {
+            pr = await createPullRequest(
+              owner,
+              repoName,
+              branchName,
+              defaultBranch,
+              prTitle,
+              prBody
+            );
+            spinner.succeed('Pull request created (fallback)');
+          } catch (retryErr) {
+            // rethrow original error to show clearer context
+            throw createErr;
+          }
+        } else {
+          throw createErr;
+        }
+      }
 
       // Display PR info
       printSection('Pull Request Created');
