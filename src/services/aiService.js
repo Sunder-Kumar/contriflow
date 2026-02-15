@@ -50,7 +50,7 @@ export async function generateIssueSolution(issueTitle, issueBody, repo, languag
       {
         headers: {
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'https://github.com/contriflow/contriflow-cli',
+          'HTTP-Referer': 'https://github.com/Sunder-Kumar/contriflow',
           'X-Title': 'ContriFlow CLI'
         }
       }
