@@ -219,15 +219,35 @@ async function handlePRCommand(issueNumber, repo, options) {
       printInfo(`  git commit -m "Fix #${issueNumber}: ${issue.title}"`);
     }
 
-    // Check for changes
+    // Check for commits or uncommitted changes
     spinner = await startSpinner('Checking for changes...');
-    const status = await git.status();
-    spinner.succeed('Status checked');
+    try {
+      // Fetch to update refs
+      await git.fetch();
+      // Count commits where branch is ahead of defaultBranch
+      let commitsAheadRaw = '0';
+      try {
+        commitsAheadRaw = await git.raw(['rev-list', '--count', `${defaultBranch}..${branchName}`]);
+      } catch (e) {
+        // fallback to 0
+      }
+      const commitsAhead = parseInt((commitsAheadRaw || '0').trim(), 10) || 0;
 
-    if (status.modified.length === 0 && status.created.length === 0) {
-      printError('No changes detected in repository');
-      printInfo('Please make changes and commit them before creating a PR');
-      process.exit(1);
+      if (commitsAhead === 0) {
+        // No commits ahead; check for uncommitted changes
+        const status = await git.status();
+        if (status.modified.length === 0 && status.created.length === 0 && status.not_added.length === 0) {
+          spinner.succeed('Status checked');
+          printError('No changes detected in repository');
+          printInfo('Please make changes and commit them before creating a PR');
+          process.exit(1);
+        }
+      }
+
+      spinner.succeed('Status checked');
+    } catch (err) {
+      spinner.fail('Failed to check changes');
+      throw err;
     }
 
     // Confirm PR creation
