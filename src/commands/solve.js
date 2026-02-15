@@ -145,6 +145,49 @@ ${codeBlocks.map((block, i) => `\n--- Code Block ${i + 1} ---\n${block}`).join('
 
         await fs.writeFile(patchPath, patchContent, 'utf-8');
 
+        // Also create a real git-style patch that can be applied with `git apply`
+        const realPatchName = `issue-${issueNumber}-${repoName}-${Date.now()}-gitapply.patch`;
+        const realPatchPath = path.join(workspaceDir, realPatchName);
+
+        const realPatchParts = [];
+        if (affectedFiles.length > 0) {
+          for (const filename of affectedFiles) {
+            // Try to locate a code block that seems related to this filename
+            let content = '';
+            for (const block of codeBlocks) {
+              if (block.includes(filename) || block.includes(path.basename(filename))) {
+                content = block;
+                break;
+              }
+            }
+            if (!content) {
+              // Fallback: include solution summary as a commented file content
+              content = `/* AI suggested changes for ${filename} */\n\n${solution}`;
+            }
+            const lines = content.replace(/\r\n/g, '\n').split('\n');
+            realPatchParts.push(`diff --git a/${filename} b/${filename}\nnew file mode 100644\nindex 0000000..e69de29\n--- /dev/null\n+++ b/${filename}\n@@ -0,0 +1,${lines.length} @@\n${lines.map(l => `+${l}`).join('\n')}\n`);
+          }
+        } else if (codeBlocks.length > 0) {
+          for (let i = 0; i < codeBlocks.length; i++) {
+            const filename = `contriflow-ai-solution-${issueNumber}-${i + 1}.js`;
+            const content = codeBlocks[i];
+            const lines = content.replace(/\r\n/g, '\n').split('\n');
+            realPatchParts.push(`diff --git a/${filename} b/${filename}\nnew file mode 100644\nindex 0000000..e69de29\n--- /dev/null\n+++ b/${filename}\n@@ -0,0 +1,${lines.length} @@\n${lines.map(l => `+${l}`).join('\n')}\n`);
+          }
+        } else {
+          const filename = `contriflow-ai-solution-${issueNumber}.txt`;
+          const content = solution;
+          const lines = content.replace(/\r\n/g, '\n').split('\n');
+          realPatchParts.push(`diff --git a/${filename} b/${filename}\nnew file mode 100644\nindex 0000000..e69de29\n--- /dev/null\n+++ b/${filename}\n@@ -0,0 +1,${lines.length} @@\n${lines.map(l => `+${l}`).join('\n')}\n`);
+        }
+
+        const realPatchContent = realPatchParts.join('\n');
+        await fs.writeFile(realPatchPath, realPatchContent, 'utf-8');
+
+        printSection('Patch File Created');
+        printSuccess(`Saved to: ${patchPath}`);
+        printSuccess(`Real git-apply patch saved to: ${realPatchPath}`);
+
         printSection('Patch File Created');
         printSuccess(`Saved to: ${patchPath}`);
 
