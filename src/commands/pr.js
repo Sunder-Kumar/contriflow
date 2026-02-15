@@ -117,11 +117,25 @@ async function handlePRCommand(issueNumber, repo, options) {
       throw err;
     }
 
-    // Create or switch to feature branch
-    const branchName = buildBranchName(issueNumber, issue.title);
-    // Check if branch already exists locally
+    // Create or switch to a branch for this issue. Prefer any existing branch that already contains the issue number.
+    let branchName = buildBranchName(issueNumber, issue.title);
     try {
       const localBranches = await git.branchLocal();
+      // Find any local branch that references this issue number (common patterns)
+      const candidates = localBranches.all.filter(b =>
+        b.includes(`issue-${issueNumber}`) ||
+        b.includes(`fix-issue-${issueNumber}`) ||
+        b.includes(`fix/issue-${issueNumber}`)
+      );
+
+      if (candidates.length > 0) {
+        // prefer exact fix-issue-<n>, then a branch starting with 'fix', otherwise take first match
+        const preferExact = candidates.find(b => b === `fix-issue-${issueNumber}`);
+        const preferFix = candidates.find(b => b.startsWith('fix'));
+        const chosen = preferExact || preferFix || candidates[0];
+        branchName = chosen;
+      }
+
       if (localBranches.all.includes(branchName)) {
         spinner = await startSpinner(`Switching to existing branch: ${branchName}...`);
         await git.checkout(branchName);
