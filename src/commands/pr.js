@@ -185,8 +185,41 @@ async function handlePRCommand(issueNumber, repo, options) {
               } catch (applyErr) {
                 spinner.fail('Failed to apply git patch');
                 printError(`Git apply failed: ${applyErr.message}`);
-                printInfo('You can manually apply the patch with:');
-                printInfo(`  git apply ${gitApplyPath}`);
+
+                // If the failure is because the file already exists, try to stage & commit the existing files instead
+                const existsRegex = /error: ([^:\n]+): already exists in working directory/g;
+                let m;
+                const existingFiles = [];
+                while ((m = existsRegex.exec(String(applyErr.message))) !== null) {
+                  existingFiles.push(m[1].trim());
+                }
+
+                if (existingFiles.length > 0) {
+                  try {
+                    printInfo(`Detected existing files: ${existingFiles.join(', ')}`);
+                    // Stage the existing files if present
+                    const filesToAdd = existingFiles.filter(f => fs.existsSync(path.join(workspaceDir, f)));
+                    if (filesToAdd.length > 0) {
+                      await git.add(filesToAdd);
+                      // Commit changes if any
+                      try {
+                        await git.commit(`Apply existing AI patch files for issue #${issueNumber}`);
+                        printSuccess('Committed existing AI patch files');
+                      } catch (commitErr) {
+                        // Nothing to commit or commit failed; ignore and continue
+                        printInfo(`Commit skipped/failed: ${commitErr.message}`);
+                      }
+                    }
+
+                    hasPatchApplied = true;
+                    printInfo('Using existing files in working directory for PR creation');
+                  } catch (handleErr) {
+                    printInfo('Failed to auto-handle existing files: ' + handleErr.message);
+                  }
+                } else {
+                  printInfo('You can manually apply the patch with:');
+                  printInfo(`  git apply ${gitApplyPath}`);
+                }
                 // continue without throwing to allow manual flow
               }
             } else {
