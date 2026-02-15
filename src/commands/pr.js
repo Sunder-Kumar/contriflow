@@ -51,7 +51,7 @@ async function handlePRCommand(issueNumber, repo, options) {
     }
 
     // Get issue details
-    let spinner = startSpinner('Fetching issue details...');
+    let spinner = await startSpinner('Fetching issue details...');
     let issue;
     try {
       const issueResponse = await octokit.issues.get({
@@ -79,7 +79,7 @@ async function handlePRCommand(issueNumber, repo, options) {
     }]);
 
     // Get user info
-    spinner = startSpinner('Fetching user information...');
+    spinner = await startSpinner('Fetching user information...');
     let userLogin;
     try {
       const userResponse = await octokit.users.getAuthenticated();
@@ -94,7 +94,7 @@ async function handlePRCommand(issueNumber, repo, options) {
     const git = simpleGit(workspaceDir);
 
     // Get default branch
-    spinner = startSpinner('Getting repository default branch...');
+    spinner = await startSpinner('Getting repository default branch...');
     let defaultBranch;
     try {
       defaultBranch = await getDefaultBranch(owner, repoName);
@@ -105,7 +105,7 @@ async function handlePRCommand(issueNumber, repo, options) {
     }
 
     // Check current branch and make sure we're on default
-    spinner = startSpinner('Checking git status...');
+    spinner = await startSpinner('Checking git status...');
     try {
       const status = await git.status();
       if (status.current !== defaultBranch) {
@@ -120,7 +120,7 @@ async function handlePRCommand(issueNumber, repo, options) {
 
     // Create feature branch
     const branchName = buildBranchName(issueNumber, issue.title);
-    spinner = startSpinner(`Creating branch: ${branchName}...`);
+    spinner = await startSpinner(`Creating branch: ${branchName}...`);
     try {
       await git.checkout(['-b', branchName]);
       spinner.succeed(`Branch created: ${branchName}`);
@@ -143,7 +143,7 @@ async function handlePRCommand(issueNumber, repo, options) {
       if (options.interactive !== false) {
         const applyPatch = await prompt('Apply AI-generated patch to branch?');
         if (applyPatch) {
-          spinner = startSpinner(`Applying patch: ${latestPatch}...`);
+          spinner = await startSpinner(`Applying patch: ${latestPatch}...`);
           try {
             const patchContent = await fs.readFile(patchPath, 'utf-8');
             spinner.succeed('Patch content loaded');
@@ -174,7 +174,7 @@ async function handlePRCommand(issueNumber, repo, options) {
     }
 
     // Check for changes
-    spinner = startSpinner('Checking for changes...');
+    spinner = await startSpinner('Checking for changes...');
     const status = await git.status();
     spinner.succeed('Status checked');
 
@@ -194,7 +194,7 @@ async function handlePRCommand(issueNumber, repo, options) {
     }
 
     // Create PR on GitHub
-    spinner = startSpinner('Creating pull request on GitHub...');
+    spinner = await startSpinner('Creating pull request on GitHub...');
     try {
       const prTitle = buildPRTitle(issueNumber, issue.title);
       const prBody = buildPRDescription(issueNumber, issue.title);
@@ -221,7 +221,7 @@ async function handlePRCommand(issueNumber, repo, options) {
       }]);
 
       // Push branch to GitHub
-      spinner = startSpinner('Pushing branch to GitHub...');
+      spinner = await startSpinner('Pushing branch to GitHub...');
       try {
         await git.push('origin', branchName, { '--set-upstream': null });
         spinner.succeed('Branch pushed to GitHub');
