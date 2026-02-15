@@ -163,13 +163,40 @@ async function handlePRCommand(issueNumber, repo, options) {
           spinner = await startSpinner(`Applying patch: ${latestPatch}...`);
           try {
             const patchContent = await fs.readFile(patchPath, 'utf-8');
-            spinner.succeed('Patch content loaded');
-            printInfo(`Patch file: ${latestPatch}`);
-            printInfo('Review the patch and apply changes manually or use git apply');
 
-            hasPatchApplied = true;
+            // Prefer git-apply compatible patch files (created by solve command)
+            const gitApplyPatch = latestPatch.endsWith('-gitapply.patch')
+              ? latestPatch
+              : (relevantPatches.find(p => p.endsWith('-gitapply.patch')) || null);
+
+            if (gitApplyPatch) {
+              const gitApplyPath = path.join(patchesDir, gitApplyPatch);
+              try {
+                // Apply the patch to the repository
+                await git.raw(['apply', gitApplyPath]);
+                // Stage and commit changes
+                await git.add('.');
+                await git.commit(`Apply AI patch for issue #${issueNumber}`);
+                spinner.succeed('Patch applied and committed');
+                printInfo(`Applied patch file: ${gitApplyPatch}`);
+                hasPatchApplied = true;
+              } catch (applyErr) {
+                spinner.fail('Failed to apply git patch');
+                printError(`Git apply failed: ${applyErr.message}`);
+                printInfo('You can manually apply the patch with:');
+                printInfo(`  git apply ${gitApplyPath}`);
+                // continue without throwing to allow manual flow
+              }
+            } else {
+              // Not a git-apply compatible patch; save content but do not attempt to apply
+              spinner.succeed('Patch content loaded');
+              printInfo(`Patch file: ${latestPatch}`);
+              printInfo('Patch is not git-apply compatible. Review and apply changes manually.');
+              hasPatchApplied = false;
+            }
+
           } catch (err) {
-            spinner.fail('Failed to apply patch');
+            spinner.fail('Failed to read patch');
             throw err;
           }
         }
