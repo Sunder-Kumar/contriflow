@@ -196,10 +196,22 @@ async function handlePRCommand(issueNumber, repo, options) {
       const prTitle = buildPRTitle(issueNumber, issue.title);
       const prBody = buildPRDescription(issueNumber, issue.title);
 
+      // Determine remote owner for head ref (in case origin is a fork)
+      let originOwner = null;
+      try {
+        const originUrl = (await git.raw(['config', '--get', 'remote.origin.url'])).trim();
+        const m = originUrl.match(/[/:]([^/:]+)\/([^/]+)(?:\.git)?$/);
+        if (m) originOwner = m[1];
+      } catch (e) {
+        // ignore
+      }
+
+      const headRef = originOwner ? `${originOwner}:${branchName}` : branchName;
+
       const pr = await createPullRequest(
         owner,
         repoName,
-        branchName,
+        headRef,
         defaultBranch,
         prTitle,
         prBody
